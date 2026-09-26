@@ -61,6 +61,9 @@ mobil:
   ip_passthrough: null           # true = Ethernet-klienten får operatørens IP direkte [ikke testet]
   foretrukket_teknologi: null    # Auto (standard) [ikke testet]
   gnss_posisjon: null            # false = slå av GPS-posisjon (personvern) [ikke testet]
+  plmn: null                     # operatør låst manuelt, f.eks. 24214 (Ice). null = automatisk [ikke testet]
+  data_roaming: null             # false = ingen nasjonal/internasjonal roaming (se docs) [ikke testet]
+  tilpassede_innstillinger: null # Telekom-firmware: «Enable Customized Settings» (Individual) [verifisert i web]
 
 # ---------------------------------------------------------------------------------------
 # Operatørens fjernstyring

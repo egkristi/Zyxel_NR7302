@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fase 8 (valgfri): Fjerner udev-reglene som 10-pc-installer-pakker-og-udev.sh la inn
+# Fase 8 (valgfri): Fjerner udev-reglene som 11-pc-sett-udev-regler.sh la inn
 # (adb-tilgang og ModemManager-unntak for Quectel/Zyxel). Installerte pakker beholdes.
 #   sudo ./81-pc-fjern-udev-regler.sh
 set -euo pipefail

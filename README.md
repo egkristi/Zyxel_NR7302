@@ -1,11 +1,14 @@
 # Zyxel NR7302 – fri bruk uavhengig av operatør
 
+🇳🇴 Norsk · [🇬🇧 English](README.en.md)
+
 Skript og fremgangsmåte for å ta kontroll over en **operatørlåst Zyxel NR7302** (5G-antenne
 for utendørs montering) fra en Linux-PC, slik at den kan brukes med **hvilken som helst
 mobiloperatør**, administreres lokalt og ikke lenger fjernstyres av operatøren.
 
 Utviklet og verifisert på en **Telenor-NR7302** (firmware `1.00(ACHA.1)b3_E0`) med SIM fra
-**Ice**, på **Linux Mint 22.3** (Ubuntu 24.04-base). Bygger på funnene i
+**Ice** og **Telia**, på **Linux Mint 22.3** (Ubuntu 24.04-base). Enheten ble deretter flashet
+til Telekom-firmware `1.00(ACHA.5)b1_F0`. Bygger på funnene i
 [davidohne/Zyxel_NR7302](https://github.com/davidohne/Zyxel_NR7302).
 
 > [!WARNING]
@@ -20,9 +23,9 @@ Utviklet og verifisert på en **Telenor-NR7302** (firmware `1.00(ACHA.1)b3_E0`) 
 | Konfigurasjonen nullstilles ved hver omstart | Endringer blir værende |
 | Web-grensesnitt og SSH bare fra operatørens side (WAN) | Tilgjengelig fra ditt eget LAN |
 | Ingen kjente kontoer/passord | Kjent admin-passord som du bytter selv |
-| Operatørens APN, fungerer bare på Telenor | Din operatørs APN (verifisert med Ice) |
+| Operatørens APN, fungerer bare på Telenor | Din operatørs APN (verifisert med Ice og Telia) |
 | Fjernstyrt av operatøren (TR-069, TR-369/USP via MQTT) | Fjernstyring slått av |
-| Firmware oppdateres bare via operatørens nett | Mulighet for å bytte til firmware som kan oppdateres manuelt (valgfritt) |
+| Firmware oppdateres bare via operatørens nett | Valgfritt: Telekom-firmware som kan oppdateres manuelt ([docs](docs/flash-telenor-til-dtag.md)) |
 
 ## Forutsetninger
 
@@ -36,26 +39,37 @@ Utviklet og verifisert på en **Telenor-NR7302** (firmware `1.00(ACHA.1)b3_E0`) 
 ## Fasene
 
 Skriptene ligger i [`scripts/`](scripts/README.md) og er nummerert etter fase.
-Navnet sier om skriptet gjelder `pc`, `zyxel` (routerdelen) eller `modem` (Quectel-modemet).
+Navnet sier om skriptet gjelder `pc`, `zyxel` (routerdelen) eller `modem` (Quectel-modemet),
+og verbet sier om det endrer noe (`sett`, `flash` …) eller bare leser (`sjekk`, `vis` …).
 
 | Fase | Hva | Skript / fremgangsmåte |
 |---|---|---|
-| **1 PC-oppsett** | pakker, udev-regler, sjekk | `10-pc-installer-pakker-og-udev.sh`, `11-pc-sjekk-klar.sh` |
-| **2 Nedlasting** | firmware (for fase 5 / redning), zycast | [`firmware/README.md`](firmware/README.md), [`tools/README.md`](tools/README.md), `22-pc-sjekk-firmwarefil.py` |
-| **3 Tilkobling** | nett mot enheten, slå på adb | `30-pc-sett-nettverkskort-mot-zyxel.sh`, [Slå på adb](#slå-på-adb) |
-| **4 Kartlegging og backup** | full backup, les config | `40-zyxel-ta-backup.sh`, `41-zyxel-vis-config.py` |
-| **5 Flashing (valgfri)** | bytte firmware *før* konfigurasjon | [Flashing](#flashing-valgfri), `50-…`, `51-…` |
+| **1 PC-oppsett** | pakker, udev-regler, sjekk | `10-pc-installer-pakker.sh`, `11-pc-sett-udev-regler.sh`, `12-pc-sjekk-klar.sh` |
+| **2 Nedlasting** | Telekom-firmware, zycast | `20-pc-last-ned-telekom-firmware.sh`, `21-pc-bygg-zycast.sh`, `22-pc-sjekk-firmwarefil.py` |
+| **3 Tilkobling** | nett mot enheten, adb | `30-pc-sett-nettverkskort-mot-zyxel.sh`, [Slå på adb](#slå-på-adb), `32-zyxel-sjekk-tilkobling.sh`, `33-zyxel-fang-adb-ved-oppstart.sh` |
+| **4 Kartlegging og backup** | full backup, les config og modem | `40-zyxel-ta-backup.sh`, `41-zyxel-vis-config.py`, `42-modem-vis-status.sh` |
+| **5 Flashing (valgfri)** | Telekom-firmware *før* konfigurasjon | [docs/flash-telenor-til-dtag.md](docs/flash-telenor-til-dtag.md), `50-…`, `51-…` |
 | **6 Konfigurasjon** | lokal administrasjon, passord, APN, fjernstyring av | `61-…` + `90-…`, `60-zyxel-sett-admin-passord.sh`, `62-zyxel-sett-apn-og-slaa-av-fjernstyring.sh` |
-| **7 Verifisering** | config, innlogging, mobildata | [Verifisering](#verifisering) |
+| **7 Verifisering** | config, innlogging, mobildata, hastighet | `70-zyxel-verifiser-config-og-innlogging.sh`, `42-modem-vis-status.sh`, `71-pc-mal-hastighet-og-ping-via-zyxel.sh` |
 | **8 Avslutning** | PC tilbake som før | `80-pc-tilbakestill-nettverkskort.sh`, `81-pc-fjern-udev-regler.sh` |
-| **9 Nødverktøy** | gjenopprett config, zycast-redning | `90-zyxel-gjenopprett-config-fra-backup.sh`, `51-…` |
+| **9 Nødverktøy** | gjenopprett config, zycast-redning | `90-zyxel-gjenopprett-config-fra-backup.sh`, `50-…` + `51-…` |
 
 ### Fase 1 – PC-oppsett
 
 ```bash
-sudo scripts/10-pc-installer-pakker-og-udev.sh
-scripts/11-pc-sjekk-klar.sh
+sudo scripts/10-pc-installer-pakker.sh
+sudo scripts/11-pc-sett-udev-regler.sh     # trekk ut og sett i USB-kabelen etterpå
+scripts/12-pc-sjekk-klar.sh
 ```
+
+### Fase 2 – Nedlasting
+
+```bash
+scripts/20-pc-last-ned-telekom-firmware.sh   # åpner nettleseren hvis telekom.de blokkerer skript
+scripts/21-pc-bygg-zycast.sh
+```
+
+Firmware og zycast trengs bare for fase 5 og som redning, men bør ligge klart før du starter.
 
 ### Fase 3 – Tilkobling
 
@@ -63,6 +77,7 @@ Antenne → PoE-injektor → nettverkskabel til PC-en, og USB-C fra antennen til
 
 ```bash
 sudo scripts/30-pc-sett-nettverkskort-mot-zyxel.sh   # 192.168.2.4/24, enheten er 192.168.2.1
+scripts/32-zyxel-sjekk-tilkobling.sh
 ```
 
 Telenor-firmwaren har LAN på **192.168.2.1**, ikke 192.168.1.1. PC-en får ingen gateway, så
@@ -88,17 +103,25 @@ adb devices -l
 adb shell id        # skal vise uid=0(root)
 ```
 
-Innstillingen overlever omstart. Sett adb-sifferet til `0` igjen for å slå det av.
+Innstillingen overlever omstart og firmwarebytte. Sett adb-sifferet til `0` igjen for å slå
+det av. **Med Telekom-firmware** er USB bare tilgjengelig ca. 30 s etter oppstart; bruk
+`33-zyxel-fang-adb-ved-oppstart.sh`.
 
 ### Fase 4 – Kartlegging og backup
 
 ```bash
 scripts/40-zyxel-ta-backup.sh
 scripts/41-zyxel-vis-config.py backup/<tid>/zcfg_config.ORIGINAL.json
+scripts/42-modem-vis-status.sh
 ```
 
 Backupen tar alle MTD-partisjoner unntatt `efs2` (modemets eget filsystem – å lese den
 rått fikk enheten til å starte på nytt). **Kopier `backup/` til et annet sted.**
+
+### Fase 5 – Flashing (valgfri)
+
+Egen veiledning: **[docs/flash-telenor-til-dtag.md](docs/flash-telenor-til-dtag.md)**.
+Gjør dette *før* fase 6, siden en ny firmware kan nullstille innstillingene.
 
 ### Fase 6 – Konfigurasjon
 
@@ -117,18 +140,19 @@ scripts/62-zyxel-sett-apn-og-slaa-av-fjernstyring.sh ice.net
 ```
 
 Logg inn på `https://192.168.2.1` og bytt passordet under Maintenance → User Account.
+Har SIM-kortet PIN, må den skrives inn i web-grensesnittet etter hvert SIM-bytte.
 
-### Verifisering
+### Fase 7 – Verifisering
 
 ```bash
-adb shell 'timeout 5 atcmd "AT+COPS?" </dev/null'       # operatør
-adb shell 'timeout 5 atcmd "AT+CGPADDR" </dev/null'     # IP fra operatøren
-adb shell 'timeout 5 atcmd "AT+QENG=\"servingcell\"" </dev/null'   # bånd, RSRP, RSRQ, SINR
-adb shell 'ping -c 3 1.1.1.1'                          # internett fra enheten
+scripts/70-zyxel-verifiser-config-og-innlogging.sh   # config og web (via adb)
+scripts/42-modem-vis-status.sh                       # SIM, operatør, APN, IP, signal
+scripts/71-pc-mal-hastighet-og-ping-via-zyxel.sh     # hastighet og ping under last
 ```
 
-Ethernet-porten står i IP-passthrough: enheten som kobles til (egen router eller PC med DHCP)
-får operatørens IP direkte.
+`71` krever at PC-en får adresse fra antennen (DHCP, `80-…`), og tvinger trafikken ut på
+kablet kort, så WiFi ikke påvirker målingen. Se [docs/ytelse-og-operatorer.md](docs/ytelse-og-operatorer.md)
+for tolkning, abonnementsbegrensninger og bufferbloat.
 
 ### Fase 8 – Avslutning
 
@@ -136,19 +160,6 @@ får operatørens IP direkte.
 sudo scripts/80-pc-tilbakestill-nettverkskort.sh
 sudo scripts/81-pc-fjern-udev-regler.sh    # valgfritt
 ```
-
-## Flashing (valgfri)
-
-Telenor-firmware oppdateres bare når enheten er på Telenor-nettet. Telekom (DTAG) legger ut
-sin NR7302-firmware som fil, så en enhet med DTAG-firmware kan oppdateres manuelt.
-
-- **Fordeler:** nyere programvare og modemfirmware, mulighet for oppdateringer.
-- **Ulemper:** ingen vei tilbake til operatørens firmware (den finnes ikke som fil),
-  konfigurasjonen nullstilles, eSIM forsvinner trolig. Prosessen er merket «WIP» upstream.
-- Flash **før** fase 6, og ta ROM-D-backup (inneholder eID) i web-grensesnittet som supervisor først.
-- Fremgangsmåte og redning med zycast: se upstream-repoet og
-  `51-zyxel-flash-firmware-via-zycast.sh`. På Telenor-enheter må zycast startes ca. 50–85 s
-  etter strøm på (skriptet venter automatisk; standard 50 s).
 
 ## Tekniske funn
 
@@ -163,6 +174,12 @@ sin NR7302-firmware som fil, så en enhet med DTAG-firmware kan oppdateres manue
 - Ikke kjør enhetens `zcmd` uten argumenter: det starter en ekstra konfigurasjonsdaemon.
 - Telenor-oppsettet bruker to APN-profiler (administrasjon og kundetrafikk). Begge får
   din operatørs APN; typisk gir operatøren IP på én av dem.
+- En hengende AT-kanal på enheten (`atcmd` får «COMMAND TIMEOUT») løses med omstart.
+- Telekom-firmware: USB/adb bare ~30 s etter oppstart, «Enable Customized Settings» må slås
+  om, APN-profil 1 står på *Auto* og må settes manuelt. Detaljer i [docs](docs/flash-telenor-til-dtag.md).
+- **Et flatt hastighetstak likt begge veier er nesten alltid abonnementet**, ikke antennen.
+  Ice *Data Frihet* er begrenset til 25 Mbit/s; et Telia-SIM i samme antenne ga ~230 Mbit/s.
+  Se [docs/ytelse-og-operatorer.md](docs/ytelse-og-operatorer.md).
 
 ## `zyxel_nr7302.yml`
 
@@ -174,7 +191,13 @@ Beskriver ønsket oppsett og alle innstillingene som er funnet, merket *verifise
 
 Backup, logger, enhetskonfigurasjoner, firmware og lokalt bygde verktøy holdes utenfor git
 (se [`.gitignore`](.gitignore)). De inneholder serienummer, IMEI, eID, sertifikater og
-passord. Del aldri innholdet i `backup/` eller `logg/`.
+passord. Del aldri innholdet i `backup/` eller `logg/`. Skjermbilder av web-grensesnittets
+statussider viser IMEI, IMSI, ICCID og GPS-posisjon – ikke publiser dem.
+
+## Lisens
+
+MIT – se [LICENSE.md](LICENSE.md). zycast (GPL-2.0) er ikke inkludert, men lastes ned og
+bygges lokalt.
 
 ## Kreditering
 

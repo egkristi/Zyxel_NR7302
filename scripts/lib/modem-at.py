@@ -4,7 +4,7 @@
   sudo ./modem-at.py 'ATI' 'AT+QCFG="usbcfg"'
   sudo ./modem-at.py --port /dev/ttyUSB0 'AT+CGMR'
 
-Krever at ModemManager ikke holder porten (se ../10-pc-installer-pakker-og-udev.sh).
+Krever at ModemManager ikke holder porten (se ../11-pc-sett-udev-regler.sh).
 Alle kommandoer og svar logges i logg/at-<dato>.log.
 """
 import argparse

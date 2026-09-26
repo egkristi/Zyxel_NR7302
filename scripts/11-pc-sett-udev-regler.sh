@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-# Installerer det som mangler på maskinen. Kjør én gang: sudo ./10-pc-installer-pakker-og-udev.sh
+# Fase 1: Udev-regler slik at vanlig bruker får adb-tilgang til NR7302 over USB, og slik at
+# ModemManager på PC-en ikke tar over modemet (AT-port/QMI).
+#   sudo ./11-pc-sett-udev-regler.sh
+# Fjernes igjen med 81-pc-fjern-udev-regler.sh. Trekk ut og sett i USB-kabelen etterpå.
 set -euo pipefail
 [[ $EUID -eq 0 ]] || { echo "Kjør med sudo." >&2; exit 1; }
-
-# adb, gcc, git, binwalk, squashfs-tools, mtd-utils er allerede installert (sjekket 2026-09-26).
-apt-get update
-apt-get install -y jq fastboot usbutils
 
 # udev: la vanlig bruker (gruppe plugdev) snakke med adb på enheten uten sudo.
 # 05c6 = Qualcomm (dekket av 51-android.rules fra før), 2c7c = Quectel, 0586 = Zyxel.

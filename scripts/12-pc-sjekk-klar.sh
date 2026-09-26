@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Sjekker at alt er installert, lastet ned og riktig før du begynner. Endrer ingenting.
-#   ./11-pc-sjekk-klar.sh
+#   ./12-pc-sjekk-klar.sh
 BASE="$(cd "$(dirname "$0")/.." && pwd)"
 IFACE="${IFACE:-$(nmcli -t -f DEVICE,TYPE device 2>/dev/null | awk -F: '$2=="ethernet"{print $1; exit}')}"  # første kablede kort, eller IFACE=...
 fail=0
@@ -9,12 +9,18 @@ bad()  { printf '  [MANGLER] %s\n' "$*"; fail=1; }
 info() { printf '  [INFO]  %s\n' "$*"; }
 
 echo "== Programmer"
-for c in adb fastboot gcc git jq python3 binwalk unsquashfs mksquashfs ubinize nmcli curl; do
-  command -v "$c" >/dev/null && ok "$c" || bad "$c  (kjør: sudo $BASE/scripts/10-pc-installer-pakker-og-udev.sh)"
+for c in adb fastboot gcc git jq python3 nmcli curl unzip; do
+  command -v "$c" >/dev/null && ok "$c" || bad "$c  (kjør: sudo $BASE/scripts/10-pc-installer-pakker.sh)"
+done
+
+python3 -c "import yaml" 2>/dev/null && ok "python3-yaml" || bad "python3-yaml (kjør: sudo $BASE/scripts/10-pc-installer-pakker.sh)"
+for c in binwalk unsquashfs mksquashfs ubinize; do
+  command -v "$c" >/dev/null && info "$c (valgfri, for upstream-metoden med modifisert firmware)" \
+    || info "$c mangler (valgfri, bare for upstream-metoden med modifisert firmware)"
 done
 
 echo "== udev / tilganger"
-[[ -f /etc/udev/rules.d/52-zyxel-nr7302.rules ]] && ok "udev-regel for Quectel/Zyxel" || bad "udev-regel (10-pc-installer-pakker-og-udev.sh)"
+[[ -f /etc/udev/rules.d/52-zyxel-nr7302.rules ]] && ok "udev-regel for Quectel/Zyxel" || bad "udev-regel (sudo ./11-pc-sett-udev-regler.sh)"
 id -nG | grep -qw plugdev && ok "bruker i gruppe plugdev" || bad "bruker ikke i plugdev"
 
 echo "== zycast"
