@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Setter APN og slår av all operatør-fjernstyring på NR7302, over adb. Tar backup først.
+# Setter APN og slår av operatørens fjernstyring på NR7302, over adb. Tar backup først.
+# Hva som slås av styres av fjernstyring.* og administrasjon.wan_admin_i_passthrough i yml.
 #
 #   ./62-zyxel-sett-apn-og-slaa-av-fjernstyring.sh <APN>      f.eks. ice.net eller telia
 #   ./62-zyxel-sett-apn-og-slaa-av-fjernstyring.sh            bruker mobil.apn fra zyxel_nr7302(.local).yml
@@ -33,26 +34,26 @@ adb_omstart_og_vent; echo
 echo "== Verifiserer"
 adb pull /xdata/zcfg_config.json "$BK/zcfg_config.ETTER.json" >/dev/null
 chmod 600 "$BK/zcfg_config.ETTER.json"
-python3 - "$BK/zcfg_config.ETTER.json" "$APN" "$PROFILER" <<'PY'
-import json, sys
-d = json.load(open(sys.argv[1])); apn = sys.argv[2]
-prof = [int(x) for x in sys.argv[3].split(",")]
-ok = True
-def chk(label, cond):
-    global ok
-    print(f"  [{'OK' if cond else 'FEIL'}] {label}"); ok &= cond
-aps = d["Cellular"]["AccessPoint"]
-chk(f"APN {','.join(map(str, prof))} = {apn}", all(aps[i]["APN"] == apn for i in prof))
-chk("CWMP av og ACS-URL tom", not d["ManagementServer"]["EnableCWMP"] and not d["ManagementServer"]["URL"])
-chk("USP-kontroller av", not any(c["Enable"] for c in d.get("LocalAgent", {}).get("Controller", [])))
-chk("MQTT-klienter av", not any(c["Enable"] for c in d.get("MQTT", {}).get("Client", [])))
-if any(a.get("SshKeyBaseAuthPublicKey") for g in d["X_ZYXEL_LoginCfg"]["LogGp"] for a in g["Account"]):
-    # Legges inn på nytt fra factory-partisjonen ved hver oppstart. Uskadelig så lenge SSH er
-    # LAN_ONLY og WAN-administrasjon er av (operatøren når ikke enheten over et annet nett).
-    print("  [INFO] Operatørens SSH-nøkkel for root er lagt inn på nytt fra factory (SSH er kun LAN)")
-chk("WAN-administrasjon (passthrough) av",
-    not any(s["Enable"] for s in d.get("X_ZYXEL_RemoteManagement_IP_PassThrough", {}).get("Service", [])))
-sys.exit(0 if ok else 1)
+# Alle verdier som ble endret skal ha overlevd omstarten.
+python3 - "$BASE/scripts/lib" "$BK/zcfg_config.FØR.json" "$BK/zcfg_config.NY.json" "$BK/zcfg_config.ETTER.json" <<'PY'
+import sys
+sys.path.insert(0, sys.argv[1])
+import zcfg
+før, ny, etter = (zcfg.load(p) for p in sys.argv[2:5])
+etter_flat = dict(zcfg.flat(etter))
+feil = 0
+for sti, _, verdi in zcfg.changes(før, ny):
+    har = etter_flat.get(sti)
+    if har == verdi:
+        print(f"  [OK]   {sti} = {str(verdi)[:40]!r}")
+    elif sti.endswith("SshKeyBaseAuthPublicKey"):
+        # Legges inn på nytt fra factory ved hver oppstart på Telenor-enheter. Uskadelig så
+        # lenge SSH bare er åpen på LAN og WAN-administrasjon er av.
+        print(f"  [INFO] {sti}: operatørens SSH-nøkkel er lagt inn på nytt fra factory")
+    else:
+        print(f"  [FEIL] {sti}: forventet {str(verdi)[:40]!r}, enheten har {str(har)[:40]!r}")
+        feil = 1
+sys.exit(feil)
 PY
 echo "  -- Modem:"
 at 'AT+COPS?'; at 'AT+CGDCONT?' | grep -E 'CGDCONT: [12],' || true; at 'AT+CGPADDR=1,2'

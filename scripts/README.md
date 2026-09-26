@@ -36,9 +36,9 @@ Skript som må kjøres med `sudo` sier fra selv. Alt som hentes fra enheten havn
 | 5 | `50-pc-sett-nettverkskort-for-zycast.sh` | PC | ja (sudo) | nettoppsett for zycast, slår av WiFi |
 | 5 | `51-zyxel-flash-firmware-via-zycast.sh` | zyxel | **ja** (sudo) | flasher .bin med zycast, venter på riktig tidsvindu |
 | 6 | `60-zyxel-sett-admin-passord.sh` | zyxel | **ja** | setter kjent admin-passord (standard: serienummeret) og tester innlogging |
-| 6 | `61-zyxel-lag-config-lokal-administrasjon.py` | zyxel | nei** | lager config med lokal administrasjon |
-| 6 | `62-zyxel-sett-apn-og-slaa-av-fjernstyring.sh` | zyxel | **ja** | APN (argument eller `mobil.apn` i yml) + slår av operatørens fjernstyring, verifiserer etter omstart |
-| 7 | `70-zyxel-verifiser-config-og-innlogging.sh` | zyxel | nei | sjekker config (fase 6) og web-grensesnitt |
+| 6 | `61-zyxel-lag-config-lokal-administrasjon.py` | zyxel | nei** | lager config med lokal administrasjon (verdier fra `zyxel_nr7302.yml`) |
+| 6 | `62-zyxel-sett-apn-og-slaa-av-fjernstyring.sh` | zyxel | **ja** | APN (argument eller `mobil.apn` i yml) + operatørens fjernstyring etter `fjernstyring.*` i yml, verifiserer etter omstart |
+| 7 | `70-zyxel-verifiser-config-og-innlogging.sh` | zyxel | nei | sjekker enhetens config mot `zyxel_nr7302.yml`, og web-grensesnittet |
 | 7 | `71-pc-mal-hastighet-og-ping-via-zyxel.sh` | PC | nei | hastighet og ping under last, tvunget ut på kablet kort |
 | 8 | `80-pc-tilbakestill-nettverkskort.sh` | PC | ja (sudo) | kortet tilbake til NetworkManager/DHCP, WiFi på igjen |
 | 8 | `81-pc-fjern-udev-regler.sh` | PC | ja (sudo) | fjerner udev-reglene fra fase 1 (pakker beholdes) |
@@ -53,7 +53,9 @@ verdier som allerede er riktige hoppes over.
 | Fil | Hva |
 |---|---|
 | `lib/felles.sh` | felles funksjoner: atomisk config-skriving (`adb_skriv_config`), omstart og venting (`adb_omstart_og_vent`), private backupmapper, valg av nettverkskort, verdier fra yml |
-| `lib/config-verdi.py` | leser én verdi fra `zyxel_nr7302.yml` med `zyxel_nr7302.local.yml` lagt oppå |
+| `lib/oppsett.py` | ønsket oppsett fra `zyxel_nr7302.yml` + `.local.yml`: hva 61/62 skriver og 70 sjekker |
+| `lib/config-verdi.py` | skriver ut én verdi fra yml (brukes av skallskriptene) |
+| `lib/sjekk-oppsett.py` | sjekker en `zcfg_config.json` mot yml (brukes av 70) |
 | `lib/zcfg.py` | Python-hjelpere for `zcfg_config.json`: oppslag på navn, sammenligning |
 | `lib/pc-nettverkskort.sh` | `admin` / `zycast` / `down` / `status` for PCens kablede kort. Brukes av 30, 50 og 80 |
 | `lib/modem-at.py` | sender AT-kommandoer til modemet via USB (`/dev/ttyUSB*`), logger til `logg/`. Brukes til å slå på adb |

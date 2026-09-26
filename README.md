@@ -128,7 +128,7 @@ Gjør dette *før* fase 6, siden en ny firmware kan nullstille innstillingene.
 Rekkefølgen er viktig: lokal administrasjon først (ellers nullstilles alt ved neste omstart).
 
 ```bash
-# 6a: beholde endringer, DHCP, HTTPS/SSH på LAN, aktivere admin/supervisor
+# 6a: beholde endringer, DHCP, HTTPS/SSH på LAN, aktivere admin/supervisor (verdier fra zyxel_nr7302.yml)
 scripts/61-zyxel-lag-config-lokal-administrasjon.py backup/<tid>/zcfg_config.ORIGINAL.json backup/<tid>/zcfg_config.LOKAL.json
 scripts/90-zyxel-gjenopprett-config-fra-backup.sh backup/<tid>/zcfg_config.LOKAL.json
 
@@ -189,10 +189,18 @@ sudo scripts/81-pc-fjern-udev-regler.sh    # valgfritt
 ## `zyxel_nr7302.yml`
 
 Beskriver ønsket oppsett og alle innstillingene som er funnet, merket *verifisert* eller
-*ikke testet*. Verdiene merket *brukes av skript* leses av skriptene: nettverkskort og
-adresser på PC-siden, APN og APN-profiler (`62`) og admin-passord (`60`). Argumenter og
-miljøvariabler går foran. Personlige verdier legges i `zyxel_nr7302.local.yml`, som er
-git-ignorert:
+*ikke testet*. Alle verifiserte innstillinger leses av skriptene:
+
+| Nøkler | Brukes av |
+|---|---|
+| `pc.*` (nettverkskort, adresser) | `12`, `30`, `32`, `50`, `51`, `60`, `70`, `71`, `80` |
+| `system`, `lan`, `administrasjon.https/ssh/ssh_passordinnlogging`, `kontoer` | `61` skriver, `70` sjekker |
+| `fjernstyring.*`, `administrasjon.wan_admin_i_passthrough` | `62` skriver, `70` sjekker |
+| `mobil.apn`, `mobil.apn_profiler` | `62` |
+| `passord.admin` | `60` |
+
+`null` betyr «ikke endre» (og ikke sjekk). Argumenter og miljøvariabler går foran.
+Personlige verdier legges i `zyxel_nr7302.local.yml`, som legges oppå og er git-ignorert:
 
 ```yaml
 mobil:

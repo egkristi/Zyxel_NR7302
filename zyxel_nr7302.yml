@@ -1,8 +1,8 @@
 # zyxel_nr7302.yml – ønsket konfigurasjon for Zyxel NR7302
 #
-# Dokumenterer ønsket oppsett og alle innstillingene som er funnet. Verdiene merket
-# [brukes av skript] leses av skriptene (via scripts/lib/config-verdi.py); resten er
-# dokumentasjon og gjøres i dag av fase 6-skriptene eller i web-grensesnittet.
+# Ønsket oppsett og alle innstillingene som er funnet. Verdiene merket [brukes av skript: …]
+# leses av de skriptene: 61 og 62 skriver dem til enheten, 70 sjekker enheten mot dem.
+# Resten (merket [ikke testet]) er foreløpig bare dokumentasjon.
 # Argumenter og miljøvariabler (IFACE, ENHET, ADMIN_ADDR ...) går foran verdiene her.
 #
 #   null eller utelatt  = ikke endre verdien på enheten / bruk skriptets standard
@@ -25,25 +25,25 @@ pc:
 # Enheten
 # ---------------------------------------------------------------------------------------
 system:
-  boot_fra_fabrikkoppsett: false # BootFromFactoryDefault. true = alle endringer slettes ved omstart (Telenor) [verifisert]
+  boot_fra_fabrikkoppsett: false # BootFromFactoryDefault. true = alle endringer slettes ved omstart (Telenor) [verifisert] [brukes av skript: 61, 70]
 
 lan:
-  dhcp_server: true              # DHCPv4.Server.Enable [verifisert]
+  dhcp_server: true              # DHCPv4.Server.Enable [verifisert] [brukes av skript: 61, 70]
 
 # Tilgang til enhetens egne tjenester. modus: LAN_ONLY | WAN_ONLY | LAN_WAN
 administrasjon:
-  https:  { aktiv: true, modus: LAN_ONLY }          # web-grensesnitt [verifisert]
-  ssh:    { aktiv: true, modus: LAN_ONLY }          # port 22022 [verifisert]
-  ssh_passordinnlogging: true    # false = bare nøkkel (DisableSshPasswordLogin) [verifisert]
+  https:  { aktiv: true, modus: LAN_ONLY }          # web-grensesnitt [verifisert] [brukes av skript: 61, 70]
+  ssh:    { aktiv: true, modus: LAN_ONLY }          # port 22022 [verifisert] [brukes av skript: 61, 70]
+  ssh_passordinnlogging: true    # false = bare nøkkel (DisableSshPasswordLogin) [verifisert] [brukes av skript: 61, 70]
   http:   null                   # [ikke testet]
   telnet: null                   # [ikke testet]
   ftp:    null                   # [ikke testet]
   ping:   null                   # [ikke testet]
-  wan_admin_i_passthrough: false # PT_HTTP/HTTPS/SSH/TELNET/FTP på port 200xx mot WAN [verifisert]
+  wan_admin_i_passthrough: false # PT_HTTP/HTTPS/SSH/TELNET/FTP på port 200xx mot WAN [verifisert] [brukes av skript: 62, 70]
 
 kontoer:
-  admin:      { aktiv: true }    # [verifisert]
-  supervisor: { aktiv: true }    # trengs for ROM-D-backup og cross-flash [verifisert]
+  admin:      { aktiv: true }    # [verifisert] [brukes av skript: 61, 70]
+  supervisor: { aktiv: true }    # trengs for ROM-D-backup og cross-flash [verifisert] [brukes av skript: 61, 70]
 
 # Passord settes av scripts/60-zyxel-sett-admin-passord.sh.
 # Tomt = enhetens serienummer (DeviceInfo.SerialNumber, står også på etiketten).
@@ -71,11 +71,12 @@ mobil:
 # ---------------------------------------------------------------------------------------
 # Operatørens fjernstyring
 # ---------------------------------------------------------------------------------------
+# false = slå av. true/null = ikke endre (operatørens fjernstyring slås ikke på igjen).
 fjernstyring:
-  tr069_cwmp: false              # false = av, ACS-URL tømmes, periodisk inform av [verifisert]
-  tr369_usp_mqtt: false          # false = USP-kontroller, MTP og MQTT-klienter av [verifisert]
-  fjern_operator_ssh_nokkel: true # root sin SSH-nøkkel fra operatøren. Legges inn igjen fra
-                                 # factory ved oppstart på Telenor-enheter (se README) [verifisert]
+  tr069_cwmp: false              # false = av, ACS-URL tømmes, periodisk inform av [verifisert] [brukes av skript: 62, 70]
+  tr369_usp_mqtt: false          # false = USP-kontroller, MTP og MQTT-klienter av [verifisert] [brukes av skript: 62, 70]
+  fjern_operator_ssh_nokkel: true # true = fjern root sin SSH-nøkkel fra operatøren. Legges inn igjen fra
+                                 # factory ved oppstart på Telenor-enheter (se README) [verifisert] [brukes av skript: 62]
 
 # ---------------------------------------------------------------------------------------
 # Diverse

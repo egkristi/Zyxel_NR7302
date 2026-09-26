@@ -59,8 +59,10 @@ Scripts that write config to the device (`60`, `62`, `90`) place the new file ne
 one, verify its md5 and swap it in with a single atomic `mv`, then reboot and wait until the
 config is complete (uptime ≥ 150 s) before verifying. `62` takes your operator's APN as an
 argument (e.g. `ice.net`, `telia`) or from `mobil.apn` in `zyxel_nr7302.local.yml`.
-PC-side addresses, APN profiles and the admin password can also be set in
-[`zyxel_nr7302.yml`](zyxel_nr7302.yml) / `zyxel_nr7302.local.yml` (git-ignored).
+All verified settings live in [`zyxel_nr7302.yml`](zyxel_nr7302.yml), with personal overrides in
+`zyxel_nr7302.local.yml` (git-ignored): PC-side interface and addresses, local management
+(`61` writes, `70` checks), operator remote management (`62` writes, `70` checks), APN and
+admin password. `null` means "leave unchanged".
 
 ### Enabling adb (Telenor firmware)
 

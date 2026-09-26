@@ -2,12 +2,14 @@
 
   python3 -m unittest discover -s tests -v
 """
+import atexit
 import binascii
 import hashlib
 import importlib.util
 import io
 import json
 import os
+import shutil
 import struct
 import subprocess
 import sys
@@ -21,9 +23,26 @@ FIXTURE = os.path.join(ROT, "tests", "fixtures", "zcfg_config.json")
 sys.path.insert(0, os.path.join(SKRIPT, "lib"))
 import zcfg  # noqa: E402
 
+# Testene bruker bare repoets zyxel_nr7302.yml, aldri en personlig .local.yml.
+_KONFIG = tempfile.mkdtemp(prefix="zyxel-konfig-")
+shutil.copy(os.path.join(ROT, "zyxel_nr7302.yml"), _KONFIG)
+os.environ["ZYXEL_NR7302_KONFIG_DIR"] = _KONFIG
+atexit.register(shutil.rmtree, _KONFIG, True)
 
-def run(*args):
-    return subprocess.run([sys.executable, *args], capture_output=True, text=True)
+
+def run(*args, konfig=None):
+    env = dict(os.environ, ZYXEL_NR7302_KONFIG_DIR=konfig) if konfig else None
+    return subprocess.run([sys.executable, *args], capture_output=True, text=True, env=env)
+
+
+def local_yml(tmp, text):
+    """Konfigmappe med repoets yml og en .local.yml med `text`."""
+    d = os.path.join(tmp, "konfig")
+    os.makedirs(d, exist_ok=True)
+    shutil.copy(os.path.join(ROT, "zyxel_nr7302.yml"), d)
+    with open(os.path.join(d, "zyxel_nr7302.local.yml"), "w", encoding="utf-8") as f:
+        f.write(text)
+    return d
 
 
 def read(path):
@@ -106,6 +125,35 @@ class LokalAdministrasjon(TmpDir):
         self.assertFalse(os.path.exists(self.p("ny.json")))
 
 
+class LokalAdministrasjonFraYml(TmpDir):
+    SKRIPT = LokalAdministrasjon.SKRIPT
+
+    def test_local_yml_styrer_endringene(self):
+        k = local_yml(self.tmp, "administrasjon:\n  https: { aktiv: true, modus: LAN_WAN }\n"
+                                "  ssh_passordinnlogging: false\nkontoer:\n  supervisor: null\n")
+        r = run(self.SKRIPT, FIXTURE, self.p("ny.json"), konfig=k)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        diff = {p: n for p, _, n in zcfg.changes(zcfg.load(FIXTURE), zcfg.load(self.p("ny.json")))}
+        self.assertEqual(diff["X_ZYXEL_RemoteManagement.Service[1].Mode"], "LAN_WAN")
+        self.assertNotIn("X_ZYXEL_RemoteManagement.Service[4].DisableSshPasswordLogin", diff)  # allerede true
+        self.assertNotIn("X_ZYXEL_LoginCfg.LogGp[0].Account[1].Enabled", diff)                # supervisor: null
+        self.assertEqual(diff["X_ZYXEL_LoginCfg.LogGp[1].Account[0].Enabled"], True)
+
+    def test_kan_slaa_av_tjeneste(self):
+        k = local_yml(self.tmp, "administrasjon:\n  ssh: { aktiv: false, modus: null }\n")
+        r = run(self.SKRIPT, FIXTURE, self.p("ny.json"), konfig=k)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        ssh = zcfg.load(self.p("ny.json"))["X_ZYXEL_RemoteManagement"]["Service"][4]
+        self.assertEqual((ssh["Enable"], ssh["Mode"]), (False, "WAN_ONLY"))
+
+    def test_ugyldig_verdi_gir_feil(self):
+        k = local_yml(self.tmp, "administrasjon:\n  https: { aktiv: true, modus: OVERALT }\n")
+        r = run(self.SKRIPT, FIXTURE, self.p("ny.json"), konfig=k)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("administrasjon.https.modus", r.stderr)
+        self.assertFalse(os.path.exists(self.p("ny.json")))
+
+
 class ApnOgFjernstyring(TmpDir):
     SKRIPT = os.path.join(SKRIPT, "lib", "lag-apn-og-fjernstyring-config.py")
 
@@ -137,6 +185,17 @@ class ApnOgFjernstyring(TmpDir):
         self.assertIn("profil 9", r.stderr)
         self.assertFalse(os.path.exists(self.p("ny.json")))
 
+    def test_yml_kan_la_fjernstyring_vaere(self):
+        k = local_yml(self.tmp, "fjernstyring:\n  tr069_cwmp: null\n  fjern_operator_ssh_nokkel: false\n"
+                                "administrasjon:\n  wan_admin_i_passthrough: null\n")
+        r = run(self.SKRIPT, FIXTURE, self.p("ny.json"), "--apn", "x", konfig=k)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        d = zcfg.load(self.p("ny.json"))
+        self.assertTrue(d["ManagementServer"]["EnableCWMP"])
+        self.assertTrue(all(s["Enable"] for s in d["X_ZYXEL_RemoteManagement_IP_PassThrough"]["Service"]))
+        self.assertTrue(d["X_ZYXEL_LoginCfg"]["LogGp"][0]["Account"][0]["SshKeyBaseAuthPublicKey"])
+        self.assertFalse(any(c["Enable"] for c in d["MQTT"]["Client"]))   # tr369_usp_mqtt: false fra repoets yml
+
     def test_apn_er_paakrevd(self):
         self.assertNotEqual(run(self.SKRIPT, FIXTURE, self.p("ny.json")).returncode, 0)
 
@@ -167,6 +226,29 @@ def hdr1_image(payload=b"\xAB" * 4096, model=0x7302):
     struct.pack_into("<I", hdr, 0x0C, binascii.crc32(payload) & 0xFFFFFFFF)
     struct.pack_into("<I", hdr, 0x174, binascii.crc32(bytes(hdr)) & 0xFFFFFFFF)
     return bytes(hdr) + payload
+
+
+class SjekkOppsett(TmpDir):
+    SKRIPT = os.path.join(SKRIPT, "lib", "sjekk-oppsett.py")
+
+    def test_fixture_avviker(self):
+        r = run(self.SKRIPT, FIXTURE)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("[FEIL] Boot fra fabrikkoppsett", r.stdout)
+
+    def test_etter_61_og_62_stemmer_alt(self):
+        run(LokalAdministrasjon.SKRIPT, FIXTURE, self.p("lokal.json"))
+        run(ApnOgFjernstyring.SKRIPT, self.p("lokal.json"), self.p("ferdig.json"), "--apn", "ice.net")
+        r = run(self.SKRIPT, self.p("ferdig.json"))
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertNotIn("FEIL", r.stdout)
+
+    def test_local_yml_endrer_forventningen(self):
+        run(LokalAdministrasjon.SKRIPT, FIXTURE, self.p("lokal.json"))
+        k = local_yml(self.tmp, "administrasjon:\n  ssh: { aktiv: true, modus: LAN_WAN }\n")
+        r = run(self.SKRIPT, self.p("lokal.json"), konfig=k)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("enheten har Mode='LAN_ONLY'", r.stdout)
 
 
 class Firmwarefil(TmpDir):
