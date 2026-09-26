@@ -1,0 +1,81 @@
+# zyxel_nr7302.yml – ønsket konfigurasjon for Zyxel NR7302
+#
+# STATUS: planlagt. Ingen skript leser denne filen ennå; den dokumenterer ønsket oppsett
+# og hvilke innstillinger som finnes. Fase 6-skriptene i scripts/ gjør endringene i dag.
+#
+#   null eller utelatt  = ikke endre verdien på enheten
+#   Personlige verdier (passord, APN-brukernavn) legges i zyxel_nr7302.local.yml ved siden
+#   av denne filen. Den blir lagt oppå denne og er git-ignorert.
+#
+# Merket [verifisert] = testet på Telenor-NR7302 med firmware 1.00(ACHA.1)b3_E0.
+# Merket [ikke testet] = stien finnes i enhetens config, men endringen er ikke prøvd ut.
+
+# ---------------------------------------------------------------------------------------
+# PC-siden (Linux)
+# ---------------------------------------------------------------------------------------
+pc:
+  nettverkskort: auto            # kablet kort mot antennen, f.eks. enp0s31f6. auto = første ethernet-kort
+  admin_adresse: 192.168.2.4/24  # PC-ens adresse mot enhetens LAN
+  enhet_adresse: 192.168.2.1     # Telenor-firmware: 192.168.2.1. Mange andre: 192.168.1.1
+  zycast_adresse: 192.168.1.4/24 # brukes bare ved flashing med zycast (bootloader)
+
+# ---------------------------------------------------------------------------------------
+# Enheten
+# ---------------------------------------------------------------------------------------
+system:
+  boot_fra_fabrikkoppsett: false # BootFromFactoryDefault. true = alle endringer slettes ved omstart (Telenor) [verifisert]
+
+lan:
+  dhcp_server: true              # DHCPv4.Server.Enable [verifisert]
+
+# Tilgang til enhetens egne tjenester. modus: LAN_ONLY | WAN_ONLY | LAN_WAN
+administrasjon:
+  https:  { aktiv: true, modus: LAN_ONLY }          # web-grensesnitt [verifisert]
+  ssh:    { aktiv: true, modus: LAN_ONLY }          # port 22022 [verifisert]
+  ssh_passordinnlogging: true    # false = bare nøkkel (DisableSshPasswordLogin) [verifisert]
+  http:   null                   # [ikke testet]
+  telnet: null                   # [ikke testet]
+  ftp:    null                   # [ikke testet]
+  ping:   null                   # [ikke testet]
+  wan_admin_i_passthrough: false # PT_HTTP/HTTPS/SSH/TELNET/FTP på port 200xx mot WAN [verifisert]
+
+kontoer:
+  admin:      { aktiv: true }    # [verifisert]
+  supervisor: { aktiv: true }    # trengs for ROM-D-backup og cross-flash [verifisert]
+
+# Passord settes av scripts/60-zyxel-sett-admin-passord.sh.
+# Tomt = enhetens serienummer (DeviceInfo.SerialNumber, står også på etiketten).
+# Sett eget passord i zyxel_nr7302.local.yml, aldri i denne filen.
+passord:
+  admin: ""
+
+# ---------------------------------------------------------------------------------------
+# Mobilnett – uavhengig av operatør
+# ---------------------------------------------------------------------------------------
+mobil:
+  apn: ice.net                   # Operatørens APN for internett (Ice: ice.net). Sjekk operatørens nettside. [verifisert: ice.net]
+  apn_profiler: [0, 1]           # Telenor-oppsettet bruker to profiler; begge får samme APN [verifisert]
+  apn_autentisering: null        # None | PAP | CHAP [ikke testet]
+  apn_brukernavn: null           # [ikke testet]
+  apn_passord: null              # [ikke testet] – legg i .local.yml
+  ip_passthrough: null           # true = Ethernet-klienten får operatørens IP direkte [ikke testet]
+  foretrukket_teknologi: null    # Auto (standard) [ikke testet]
+  gnss_posisjon: null            # false = slå av GPS-posisjon (personvern) [ikke testet]
+
+# ---------------------------------------------------------------------------------------
+# Operatørens fjernstyring
+# ---------------------------------------------------------------------------------------
+fjernstyring:
+  tr069_cwmp: false              # false = av, ACS-URL tømmes, periodisk inform av [verifisert]
+  tr369_usp_mqtt: false          # false = USP-kontroller, MTP og MQTT-klienter av [verifisert]
+  fjern_operator_ssh_nokkel: true # root sin SSH-nøkkel fra operatøren. Legges inn igjen fra
+                                 # factory ved oppstart på Telenor-enheter (se README) [verifisert]
+
+# ---------------------------------------------------------------------------------------
+# Diverse
+# ---------------------------------------------------------------------------------------
+tid:
+  ntp_server: null               # Telenor bruker ntp.online.no. F.eks. no.pool.ntp.org [ikke testet]
+
+wifi:
+  aktiv: null                    # enhetens innebygde 2,4 GHz-oppsettsnett [ikke testet]

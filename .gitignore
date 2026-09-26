@@ -1,0 +1,51 @@
+# ---------------------------------------------------------------------------
+# Alt som er knyttet til en bestemt enhet eller person skal ALDRI inn i git.
+# ---------------------------------------------------------------------------
+
+# Backup av enheten: rå flash-dumper (rom-d/eID, factory, sertifikater, nøkler) og config
+backup/*
+!backup/README.md
+
+# Logger (AT-kommandoer, zycast, personlige notater)
+logg/*
+!logg/README.md
+
+# Config hentet fra / laget for en enhet (inneholder krypterte og evt. klartekst-passord)
+config/
+*zcfg_config*.json
+*.json.bak*
+
+# Personlige overstyringer av zyxel_nr7302.yml (passord, APN-brukernavn osv.)
+*.local.yml
+
+# Firmware og dokumentasjon fra operatører/Zyxel (opphavsrett – lastes ned med skript)
+firmware/*
+!firmware/README.md
+firmware_*/
+*.bin
+*.zip
+*.pdf
+*.img
+*.ubi
+
+# Verktøy som bygges/lastes ned lokalt
+tools/*
+!tools/README.md
+verktoy/
+zycast/
+venv/
+.venv/
+
+# Kopier av andres repo og reverse engineering-materiale
+repo/
+analyse/
+Zyxel_NR7302/
+
+# Python / editor / OS
+__pycache__/
+*.pyc
+*.swp
+*~
+.DS_Store
+.vscode/
+.idea/
