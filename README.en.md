@@ -1,6 +1,6 @@
 # Zyxel NR7302 – operator-independent use
 
-[🇳🇴 Norsk](README.md) · 🇬🇧 English
+[🇳🇴 Norsk](README.md) · 🇬🇧 English · 📖 [Documentation site](https://egkristi.github.io/Zyxel_NR7302/)
 
 Scripts and a step-by-step process for taking control of an **operator-locked Zyxel NR7302**
 (outdoor 5G antenna/router) from a Linux PC, so it can be used with **any mobile operator**,
@@ -55,6 +55,13 @@ it changes something (`sett` = set, `flash`, `gjenopprett` = restore) or only re
 | 8 Clean up | restore the PC's network settings, remove udev rules | `80-…`, `81-…` |
 | 9 Recovery | write back a config backup, zycast re-flash | `90-…`, `50-…` + `51-…` |
 
+Scripts that write config to the device (`60`, `62`, `90`) place the new file next to the old
+one, verify its md5 and swap it in with a single atomic `mv`, then reboot and wait until the
+config is complete (uptime ≥ 150 s) before verifying. `62` takes your operator's APN as an
+argument (e.g. `ice.net`, `telia`) or from `mobil.apn` in `zyxel_nr7302.local.yml`.
+PC-side addresses, APN profiles and the admin password can also be set in
+[`zyxel_nr7302.yml`](zyxel_nr7302.yml) / `zyxel_nr7302.local.yml` (git-ignored).
+
 ### Enabling adb (Telenor firmware)
 
 The USB port initially exposes only the modem's AT port and RmNet. adb is enabled by flipping
@@ -96,6 +103,17 @@ should show root. With Telekom firmware, USB is only available for ~30 s after b
 Backups, logs, device configs, firmware and locally built tools are excluded by
 [`.gitignore`](.gitignore); they contain serial number, IMEI, eID, certificates and passwords.
 Screenshots of the web UI status pages show IMEI, IMSI, ICCID and GPS position.
+
+## Development
+
+Tests run without a device, against a made-up config in `tests/fixtures/` and a fake `adb`:
+
+```bash
+python3 -m unittest discover -s tests -v
+shellcheck scripts/*.sh scripts/lib/*.sh
+```
+
+GitHub Actions runs both on every push and publishes the documentation site with MkDocs Material.
 
 ## License
 

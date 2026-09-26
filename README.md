@@ -1,6 +1,6 @@
 # Zyxel NR7302 – fri bruk uavhengig av operatør
 
-🇳🇴 Norsk · [🇬🇧 English](README.en.md)
+🇳🇴 Norsk · [🇬🇧 English](README.en.md) · 📖 [Dokumentasjonsside](https://egkristi.github.io/Zyxel_NR7302/)
 
 Skript og fremgangsmåte for å ta kontroll over en **operatørlåst Zyxel NR7302** (5G-antenne
 for utendørs montering) fra en Linux-PC, slik at den kan brukes med **hvilken som helst
@@ -129,15 +129,20 @@ Rekkefølgen er viktig: lokal administrasjon først (ellers nullstilles alt ved 
 
 ```bash
 # 6a: beholde endringer, DHCP, HTTPS/SSH på LAN, aktivere admin/supervisor
-scripts/61-zyxel-lag-config-lokal-administrasjon.py backup/<tid>/zcfg_config.ORIGINAL.json /tmp/ny.json
-scripts/90-zyxel-gjenopprett-config-fra-backup.sh /tmp/ny.json
+scripts/61-zyxel-lag-config-lokal-administrasjon.py backup/<tid>/zcfg_config.ORIGINAL.json backup/<tid>/zcfg_config.LOKAL.json
+scripts/90-zyxel-gjenopprett-config-fra-backup.sh backup/<tid>/zcfg_config.LOKAL.json
 
 # 6b: kjent admin-passord (standard: serienummeret på etiketten), testes med innlogging
 scripts/60-zyxel-sett-admin-passord.sh            # eller: ... 'EgetPassord' [--alle]
 
 # 6c: operatørens APN og slå av operatørens fjernstyring (sett inn SIM først)
-scripts/62-zyxel-sett-apn-og-slaa-av-fjernstyring.sh ice.net
+scripts/62-zyxel-sett-apn-og-slaa-av-fjernstyring.sh ice.net      # Ice; Telia: telia
 ```
+
+Skriptene som skriver config til enheten (`60`, `62`, `90`) legger den nye filen ved siden av
+den gamle, kontrollerer md5 og bytter den inn med én atomisk `mv`, så et strømbrudd underveis
+ikke kan etterlate en halvskrevet config. Deretter starter de enheten på nytt og venter til
+configen er komplett (oppetid ≥ 150 s) før de verifiserer.
 
 Logg inn på `https://192.168.2.1` og bytt passordet under Maintenance → User Account.
 Har SIM-kortet PIN, må den skrives inn i web-grensesnittet etter hvert SIM-bytte.
@@ -184,8 +189,17 @@ sudo scripts/81-pc-fjern-udev-regler.sh    # valgfritt
 ## `zyxel_nr7302.yml`
 
 Beskriver ønsket oppsett og alle innstillingene som er funnet, merket *verifisert* eller
-*ikke testet*. **Planlagt:** skriptene leser den ikke ennå. Personlige verdier legges i
-`zyxel_nr7302.local.yml`, som er git-ignorert.
+*ikke testet*. Verdiene merket *brukes av skript* leses av skriptene: nettverkskort og
+adresser på PC-siden, APN og APN-profiler (`62`) og admin-passord (`60`). Argumenter og
+miljøvariabler går foran. Personlige verdier legges i `zyxel_nr7302.local.yml`, som er
+git-ignorert:
+
+```yaml
+mobil:
+  apn: ice.net
+passord:
+  admin: "MittEgetPassord"
+```
 
 ## Personvern – hva som ikke er i dette repoet
 
@@ -193,6 +207,18 @@ Backup, logger, enhetskonfigurasjoner, firmware og lokalt bygde verktøy holdes 
 (se [`.gitignore`](.gitignore)). De inneholder serienummer, IMEI, eID, sertifikater og
 passord. Del aldri innholdet i `backup/` eller `logg/`. Skjermbilder av web-grensesnittets
 statussider viser IMEI, IMSI, ICCID og GPS-posisjon – ikke publiser dem.
+
+## Utvikling og tester
+
+Testene kjører uten enhet, mot en oppdiktet config i `tests/fixtures/` og en falsk `adb`:
+
+```bash
+python3 -m unittest discover -s tests -v
+shellcheck scripts/*.sh scripts/lib/*.sh
+```
+
+GitHub Actions kjører begge ved hver push, og publiserer [dokumentasjonssiden](https://egkristi.github.io/Zyxel_NR7302/)
+fra `docs/` og README-filene (MkDocs Material, `mkdocs.yml`).
 
 ## Lisens
 

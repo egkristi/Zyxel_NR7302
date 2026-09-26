@@ -1,0 +1,77 @@
+site_name: Zyxel NR7302 – fri bruk
+site_description: Ta kontroll over en operatørlåst Zyxel NR7302 5G-antenne fra Linux – bruk hvilken som helst operatør, lokal administrasjon, ingen fjernstyring.
+site_url: https://egkristi.github.io/Zyxel_NR7302/
+repo_url: https://github.com/egkristi/Zyxel_NR7302
+repo_name: egkristi/Zyxel_NR7302
+edit_uri: ""
+copyright: MIT-lisens · Bygger på funnene i davidohne/Zyxel_NR7302
+
+docs_dir: docs
+exclude_docs: |
+  README.md
+
+# Sidene index, en, skript og konfigurasjon hentes fra README-filene og yml-filen i repoet
+# (se .mkdocs/hooks.py), så innholdet bare finnes ett sted.
+hooks:
+  - .mkdocs/hooks.py
+
+nav:
+  - Oversikt: index.md
+  - Skript: skript.md
+  - Veiledninger:
+      - Telenor → Telekom-firmware: flash-telenor-til-dtag.md
+      - Ytelse og operatører: ytelse-og-operatorer.md
+  - Konfigurasjonsfil: konfigurasjon.md
+  - English: en.md
+
+theme:
+  name: material
+  language: nb
+  icon:
+    logo: material/antenna
+    repo: fontawesome/brands/github
+  favicon: assets/favicon.svg
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - content.code.copy
+    - search.highlight
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue grey
+      accent: deep orange
+      toggle:
+        icon: material/weather-night
+        name: Mørkt tema
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue grey
+      accent: deep orange
+      toggle:
+        icon: material/weather-sunny
+        name: Lyst tema
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - toc:
+      permalink: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+
+plugins:
+  - search:
+      lang: ["no", en]
+
+validation:
+  links:
+    anchors: warn
