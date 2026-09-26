@@ -9,6 +9,7 @@ import importlib.util
 import io
 import json
 import os
+import re
 import shutil
 import struct
 import subprocess
@@ -249,6 +250,64 @@ class SjekkOppsett(TmpDir):
         r = run(self.SKRIPT, self.p("lokal.json"), konfig=k)
         self.assertEqual(r.returncode, 1)
         self.assertIn("enheten har Mode='LAN_ONLY'", r.stdout)
+
+
+class StandardOppsett(unittest.TestCase):
+    """Standardverdiene i repoets zyxel_nr7302.yml: gyldige, og lik det som er verifisert på enheten."""
+
+    @classmethod
+    def setUpClass(cls):
+        sys.path.insert(0, os.path.join(SKRIPT, "lib"))
+        import oppsett
+        cls.o = oppsett
+        cls.cfg = oppsett.load(_KONFIG)
+
+    def test_enhetsinnstillinger_er_de_verifiserte(self):
+        got = {e["nøkkel"]: e["yml"] for e in self.o.lokal_administrasjon(self.cfg)}
+        self.assertEqual(got, {
+            "system.boot_fra_fabrikkoppsett": False,
+            "lan.dhcp_server": True,
+            "administrasjon.https.aktiv": True, "administrasjon.https.modus": "LAN_ONLY",
+            "administrasjon.ssh.aktiv": True, "administrasjon.ssh.modus": "LAN_ONLY",
+            "administrasjon.ssh_passordinnlogging": True,
+            "kontoer.admin.aktiv": True, "kontoer.supervisor.aktiv": True,
+        })
+        self.assertEqual(self.o.fjernstyring(self.cfg),
+                         dict(tr069_off=True, usp_mqtt_off=True, fjern_ssh_nokkel=True, wan_admin=False))
+
+    def test_adresser(self):
+        import ipaddress
+        pc = self.cfg["pc"]
+        admin = ipaddress.ip_interface(pc["admin_adresse"])
+        enhet = ipaddress.ip_address(pc["enhet_adresse"])
+        zycast = ipaddress.ip_interface(pc["zycast_adresse"])
+        self.assertIn(enhet, admin.network)
+        self.assertNotEqual(admin.ip, enhet)
+        self.assertEqual(zycast.network, ipaddress.ip_network("192.168.1.0/24"))   # bootloaderens nett
+        self.assertNotEqual(zycast.ip, ipaddress.ip_address("192.168.1.1"))
+        self.assertTrue(pc["nettverkskort"])
+
+    def test_ingen_personlige_verdier(self):
+        self.assertIsNone(self.o.get(self.cfg, "mobil.apn"))
+        self.assertIn(self.o.get(self.cfg, "passord.admin"), ("", None))
+        self.assertIsNone(self.o.get(self.cfg, "mobil.apn_passord"))
+
+    def test_apn_profiler(self):
+        prof = self.o.get(self.cfg, "mobil.apn_profiler")
+        self.assertTrue(prof and all(isinstance(i, int) and i >= 0 for i in prof))
+
+    def test_utestede_noekler_er_null(self):
+        for key in ("administrasjon.http", "administrasjon.telnet", "administrasjon.ftp", "administrasjon.ping",
+                    "mobil.plmn", "mobil.data_roaming", "mobil.gnss_posisjon", "tid.ntp_server", "wifi.aktiv"):
+            self.assertIsNone(self.o.get(self.cfg, key), key)
+
+    def test_skallskriptenes_reserveverdier_er_like_yml(self):
+        tekst = "".join(read(os.path.join(SKRIPT, f)) for f in
+                        ("lib/felles.sh", "lib/pc-nettverkskort.sh", "32-zyxel-sjekk-tilkobling.sh", "51-zyxel-flash-firmware-via-zycast.sh",
+                         "60-zyxel-sett-admin-passord.sh", "62-zyxel-sett-apn-og-slaa-av-fjernstyring.sh",
+                         "70-zyxel-verifiser-config-og-innlogging.sh"))
+        for key, verdi in re.findall(r"config_verdi ([a-z_.]+) ([^)\s]+)\)", tekst):
+            self.assertEqual(self.o.fmt(self.o.get(self.cfg, key)), verdi, key)
 
 
 class Firmwarefil(TmpDir):

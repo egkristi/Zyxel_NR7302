@@ -3,6 +3,8 @@ kilde: zyxel_nr7302.yml
 ---
 # Konfigurasjonsfil
 
+🇳🇴 Norsk · [🇬🇧 English](konfigurasjon.en.md)
+
 `zyxel_nr7302.yml` i roten av repoet beskriver ønsket oppsett og alle innstillingene som er
 funnet, merket *verifisert* eller *ikke testet*.
 

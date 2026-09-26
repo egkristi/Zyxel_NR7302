@@ -13,14 +13,19 @@ import re
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GITHUB = "https://github.com/egkristi/Zyxel_NR7302"
 
-# repo-sti -> side i docs/
+# repo-sti -> side i docs/. Engelske sider lenkes uten .en: i18n-pluginen peker lenken til
+# samme språk som siden den står på.
 PAGES = {
     "README.md": "index.md",
-    "README.en.md": "en.md",
+    "README.en.md": "index.md",
     "scripts/README.md": "skript.md",
+    "scripts/README.en.md": "skript.md",
     "zyxel_nr7302.yml": "konfigurasjon.md",
     "docs/README.md": "index.md",
+    "docs/README.en.md": "index.md",
 }
+# Språklinjen øverst i dokumentene («🇳🇴 Norsk · [🇬🇧 English](…)»): siden har egen språkvelger.
+LANG_LINE = re.compile(r"^.*🇳🇴.*🇬🇧.*\n\n?", re.M)
 
 LINK = re.compile(r"(?<!!)\[([^\]]*)\]\(([^)\s]+)\)")
 ALERT = re.compile(r"^> \[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\n((?:>.*\n?)*)", re.M)
@@ -36,7 +41,7 @@ def _rewrite_link(target, src_dir):
     if repo_path in PAGES:
         return PAGES[repo_path] + anchor
     if repo_path.startswith("docs/") and repo_path.endswith(".md"):
-        return repo_path[len("docs/"):] + anchor
+        return repo_path[len("docs/"):].replace(".en.md", ".md") + anchor
     kind = "tree" if os.path.isdir(os.path.join(ROOT, repo_path)) else "blob"
     return f"{GITHUB}/{kind}/main/{repo_path}{anchor}"
 
@@ -60,5 +65,6 @@ def on_page_markdown(markdown, page, config, files):
         src_dir = posixpath.dirname(kilde)
     else:
         src_dir = "docs"
+    markdown = LANG_LINE.sub("", markdown, count=1)
     markdown = LINK.sub(lambda m: f"[{m.group(1)}]({_rewrite_link(m.group(2), src_dir)})", markdown)
     return _alerts(markdown)

@@ -1,6 +1,9 @@
 # backup/
 
+🇳🇴 Norsk · [🇬🇧 English](README.en.md)
+
 Her legger `scripts/40-zyxel-ta-backup.sh` og fase 6-skriptene backup fra enheten, én mappe per kjøring.
+Mappene opprettes slik at bare du kan lese dem (`700`).
 
 **Innholdet er personlig og kommer aldri med i git** (se `.gitignore`): rå flash-dumper med
 eID/ROM-D, fabrikkdata, sertifikater og nøkler, og konfigurasjonsfiler med krypterte passord.

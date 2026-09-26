@@ -9,9 +9,11 @@ copyright: MIT-lisens · Bygger på funnene i davidohne/Zyxel_NR7302
 docs_dir: docs
 exclude_docs: |
   README.md
+  README.en.md
 
-# Sidene index, en, skript og konfigurasjon hentes fra README-filene og yml-filen i repoet
-# (se .mkdocs/hooks.py), så innholdet bare finnes ett sted.
+# Sidene index, skript og konfigurasjon (norsk og .en.md) hentes fra README-filene og
+# yml-filen i repoet (se .mkdocs/hooks.py), så innholdet bare finnes ett sted.
+# Engelske sider er <side>.en.md og publiseres under /en/ (mkdocs-static-i18n).
 hooks:
   - .mkdocs/hooks.py
 
@@ -22,7 +24,6 @@ nav:
       - Telenor → Telekom-firmware: flash-telenor-til-dtag.md
       - Ytelse og operatører: ytelse-og-operatorer.md
   - Konfigurasjonsfil: konfigurasjon.md
-  - English: en.md
 
 theme:
   name: material
@@ -70,7 +71,29 @@ markdown_extensions:
 
 plugins:
   - search:
-      lang: ["no", en]
+      lang: ["no"]
+  - i18n:
+      docs_structure: suffix
+      fallback_to_default: false
+      reconfigure_material: true
+      reconfigure_search: true
+      languages:
+        - locale: nb
+          name: Norsk
+          default: true
+          build: true
+        - locale: en
+          name: English
+          build: true
+          site_name: Zyxel NR7302 – operator-independent use
+          site_description: Take control of an operator-locked Zyxel NR7302 5G antenna from Linux – any operator, local management, no remote management.
+          nav_translations:
+            Oversikt: Overview
+            Skript: Scripts
+            Veiledninger: Guides
+            Telenor → Telekom-firmware: Telenor → Telekom firmware
+            Ytelse og operatører: Performance and operators
+            Konfigurasjonsfil: Configuration file
 
 validation:
   links:

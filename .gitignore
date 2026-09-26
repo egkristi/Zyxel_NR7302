@@ -5,10 +5,12 @@
 # Backup av enheten: rå flash-dumper (rom-d/eID, factory, sertifikater, nøkler) og config
 backup/*
 !backup/README.md
+!backup/README.en.md
 
 # Logger (AT-kommandoer, zycast, personlige notater)
 logg/*
 !logg/README.md
+!logg/README.en.md
 
 # Config hentet fra / laget for en enhet (inneholder krypterte og evt. klartekst-passord)
 config/
@@ -23,6 +25,7 @@ config/
 # Firmware og dokumentasjon fra operatører/Zyxel (opphavsrett – lastes ned med skript)
 firmware/*
 !firmware/README.md
+!firmware/README.en.md
 firmware_*/
 *.bin
 *.zip
@@ -33,6 +36,7 @@ firmware_*/
 # Verktøy som bygges/lastes ned lokalt
 tools/*
 !tools/README.md
+!tools/README.en.md
 verktoy/
 zycast/
 venv/

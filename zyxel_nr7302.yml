@@ -10,16 +10,17 @@
 #   av denne filen. Den blir lagt oppå denne og er git-ignorert.
 #
 # Merket [verifisert] = testet på Telenor-NR7302 med firmware 1.00(ACHA.1)b3_E0.
-# Merket [ikke testet] = stien finnes i enhetens config, men endringen er ikke prøvd ut.
+# Merket [ikke testet] = stien (vist i kommentaren) finnes i enhetens config, men endringen er
+# ikke prøvd ut. Ingen skript leser disse ennå.
 
 # ---------------------------------------------------------------------------------------
 # PC-siden (Linux)
 # ---------------------------------------------------------------------------------------
 pc:
   nettverkskort: auto            # kablet kort mot antennen, f.eks. enp0s31f6. auto = første ethernet-kort [brukes av skript]
-  admin_adresse: 192.168.2.4/24  # PC-ens adresse mot enhetens LAN [brukes av skript]
-  enhet_adresse: 192.168.2.1     # Telenor-firmware: 192.168.2.1. Mange andre: 192.168.1.1 [brukes av skript]
-  zycast_adresse: 192.168.1.4/24 # brukes bare ved flashing med zycast (bootloader) [brukes av skript]
+  admin_adresse: 192.168.2.4/24  # PC-ens adresse mot enhetens LAN; samme nett som enhet_adresse [brukes av skript]
+  enhet_adresse: 192.168.2.1     # Telenor-firmware: 192.168.2.1. Telekom etter fabrikkinnstilling: trolig 192.168.1.1 [brukes av skript]
+  zycast_adresse: 192.168.1.4/24 # bare ved flashing med zycast; bootloaderen bruker 192.168.1.0/24 [brukes av skript]
 
 # ---------------------------------------------------------------------------------------
 # Enheten
@@ -35,10 +36,10 @@ administrasjon:
   https:  { aktiv: true, modus: LAN_ONLY }          # web-grensesnitt [verifisert] [brukes av skript: 61, 70]
   ssh:    { aktiv: true, modus: LAN_ONLY }          # port 22022 [verifisert] [brukes av skript: 61, 70]
   ssh_passordinnlogging: true    # false = bare nøkkel (DisableSshPasswordLogin) [verifisert] [brukes av skript: 61, 70]
-  http:   null                   # [ikke testet]
-  telnet: null                   # [ikke testet]
-  ftp:    null                   # [ikke testet]
-  ping:   null                   # [ikke testet]
+  http:   null                   # X_ZYXEL_RemoteManagement.Service HTTP [ikke testet]
+  telnet: null                   # X_ZYXEL_RemoteManagement.Service TELNET [ikke testet]
+  ftp:    null                   # X_ZYXEL_RemoteManagement.Service FTP [ikke testet]
+  ping:   null                   # X_ZYXEL_RemoteManagement.Service PING [ikke testet]
   wan_admin_i_passthrough: false # PT_HTTP/HTTPS/SSH/TELNET/FTP på port 200xx mot WAN [verifisert] [brukes av skript: 62, 70]
 
 kontoer:
@@ -58,14 +59,18 @@ mobil:
   apn: null                      # Operatørens APN, f.eks. ice.net (Ice) eller telia (Telia). Sett i .local.yml
                                  # eller gi som argument til 62. [verifisert: ice.net] [brukes av skript: 62]
   apn_profiler: [0, 1]           # Telenor-oppsettet bruker to profiler; begge får samme APN [verifisert] [brukes av skript: 62]
-  apn_autentisering: null        # None | PAP | CHAP [ikke testet]
-  apn_brukernavn: null           # [ikke testet]
-  apn_passord: null              # [ikke testet] – legg i .local.yml
-  ip_passthrough: null           # true = Ethernet-klienten får operatørens IP direkte [ikke testet]
-  foretrukket_teknologi: null    # Auto (standard) [ikke testet]
-  gnss_posisjon: null            # false = slå av GPS-posisjon (personvern) [ikke testet]
-  plmn: null                     # operatør låst manuelt, f.eks. 24214 (Ice). null = automatisk [ikke testet]
-  data_roaming: null             # false = ingen nasjonal/internasjonal roaming (se docs) [ikke testet]
+  apn_autentisering: null        # None | PAP | CHAP. AccessPoint.X_ZYXEL_AuthenticationType [ikke testet]
+  apn_brukernavn: null           # AccessPoint.Username [ikke testet]
+  apn_passord: null              # AccessPoint.Password [ikke testet] – legg i .local.yml
+  ip_passthrough: null           # true = Ethernet-klienten får operatørens IP direkte.
+                                 # Cellular.Interface.X_ZYXEL_IP_PassThrough.Enable [ikke testet]
+  foretrukket_teknologi: null    # Auto (standard). Cellular.Interface.PreferredAccessTechnology [ikke testet]
+  gnss_posisjon: null            # false = slå av GPS-posisjon (personvern). Cellular.X_ZYXEL_GNSS_Location.Enable [ikke testet]
+  plmn: null                     # operatør låst manuelt, f.eks. 24214 (Ice). null = automatisk.
+                                 # Ingen sti i configen på Telenor-firmware: settes i web-grensesnittet
+                                 # (Broadband → Cellular PLMN) eller med AT+COPS [ikke testet]
+  data_roaming: null             # false = ingen nasjonal/internasjonal roaming (se docs).
+                                 # Cellular.RoamingEnabled (står på true etter oppsettet) [ikke testet]
   tilpassede_innstillinger: null # Telekom-firmware: «Enable Customized Settings» (Individual) [verifisert i web]
 
 # ---------------------------------------------------------------------------------------
@@ -82,7 +87,7 @@ fjernstyring:
 # Diverse
 # ---------------------------------------------------------------------------------------
 tid:
-  ntp_server: null               # Telenor bruker ntp.online.no. F.eks. no.pool.ntp.org [ikke testet]
+  ntp_server: null               # Time.NTPServer1. Telenor bruker ntp.online.no. F.eks. no.pool.ntp.org [ikke testet]
 
 wifi:
-  aktiv: null                    # enhetens innebygde 2,4 GHz-oppsettsnett [ikke testet]
+  aktiv: null                    # enhetens innebygde 2,4 GHz-oppsettsnett. WiFi.Radio/SSID.Enable [ikke testet]

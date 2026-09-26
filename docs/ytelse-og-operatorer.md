@@ -1,5 +1,7 @@
 # Ytelse, måling og operatører
 
+🇳🇴 Norsk · [🇬🇧 English](ytelse-og-operatorer.en.md)
+
 Erfaringer fra feilsøking av lav hastighet på NR7302 med norsk mobilabonnement.
 
 ## Kort oppsummert

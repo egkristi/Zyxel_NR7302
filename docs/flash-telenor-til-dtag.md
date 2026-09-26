@@ -1,5 +1,7 @@
 # Telenor → Telekom (DTAG) firmware på NR7302
 
+🇳🇴 Norsk · [🇬🇧 English](flash-telenor-til-dtag.en.md)
+
 Telenor-firmware oppdateres bare når enheten er på Telenor-nettet. Med et annet
 operatør-SIM står du fast på den versjonen du har. Telekom (DTAG) legger ut sin
 NR7302-firmware som fil, så etter en overgang kan du oppdatere manuelt.

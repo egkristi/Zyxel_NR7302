@@ -1,5 +1,7 @@
 # Skript
 
+🇳🇴 Norsk · [🇬🇧 English](README.en.md)
+
 Skriptene er nummerert etter fase, og navnet sier **hvor** noe skjer og **om** noe endres.
 
 ## Navneregel

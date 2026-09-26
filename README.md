@@ -189,7 +189,7 @@ sudo scripts/81-pc-fjern-udev-regler.sh    # valgfritt
 ## `zyxel_nr7302.yml`
 
 Beskriver ønsket oppsett og alle innstillingene som er funnet, merket *verifisert* eller
-*ikke testet*. Alle verifiserte innstillinger leses av skriptene:
+*ikke testet* (se [docs/konfigurasjon.md](docs/konfigurasjon.md)). Alle verifiserte innstillinger leses av skriptene:
 
 | Nøkler | Brukes av |
 |---|---|
@@ -230,7 +230,7 @@ fra `docs/` og README-filene (MkDocs Material, `mkdocs.yml`).
 
 ## Lisens
 
-MIT – se [LICENSE.md](LICENSE.md). zycast (GPL-2.0) er ikke inkludert, men lastes ned og
+MIT – se [LICENSE.md](LICENSE.md) ([norsk oversettelse](LICENSE.nb.md)). zycast (GPL-2.0) er ikke inkludert, men lastes ned og
 bygges lokalt.
 
 ## Kreditering
