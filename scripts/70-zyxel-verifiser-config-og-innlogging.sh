@@ -4,17 +4,17 @@
 #   ./70-zyxel-verifiser-config-og-innlogging.sh
 #   Annen adresse:  ENHET=192.168.1.1 ./70-zyxel-verifiser-config-og-innlogging.sh
 set -uo pipefail
-BASE="$(cd "$(dirname "$0")/.." && pwd)"
-ENHET="${ENHET:-192.168.2.1}"
+. "$(dirname "$0")/lib/felles.sh"
+ENHET="${ENHET:-$(config_verdi pc.enhet_adresse 192.168.2.1)}"
 adb get-state >/dev/null 2>&1 || { echo "adb ser ingen enhet (se 32-zyxel-sjekk-tilkobling.sh)." >&2; exit 1; }
 
-up=$(adb shell 'cut -d. -f1 /proc/uptime' | tr -d '\r')
-if (( up < 150 )); then
-  echo "Enheten har bare vært oppe i ${up} s. Config er først komplett etter ca. 150 s – vent litt."
+up=$(adb_sh 'cut -d. -f1 /proc/uptime')
+if (( up < CONFIG_KLAR_SEK )); then
+  echo "Enheten har bare vært oppe i ${up} s. Config er først komplett etter ca. $CONFIG_KLAR_SEK s – vent litt."
   exit 1
 fi
 
-OUT="$BASE/backup/verifiser-$(date +%Y%m%d-%H%M%S)"; mkdir -p "$OUT"
+OUT="$BASE/backup/verifiser-$(date +%Y%m%d-%H%M%S)"; privat_mappe "$OUT"
 adb pull /xdata/zcfg_config.json "$OUT/zcfg_config.json" >/dev/null || { echo "Kunne ikke hente config." >&2; exit 1; }
 chmod 600 "$OUT/zcfg_config.json"
 

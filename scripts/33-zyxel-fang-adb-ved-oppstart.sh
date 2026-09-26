@@ -11,7 +11,7 @@
 #
 # Resultat: backup/adb-<tid>/ med zcfg_config.json og modemstatus (git-ignorert).
 set -uo pipefail
-BASE="$(cd "$(dirname "$0")/.." && pwd)"
+. "$(dirname "$0")/lib/felles.sh"
 MIN="${1:-15}"
 OUT="$BASE/backup/adb-$(date +%Y%m%d-%H%M%S)"
 
@@ -22,7 +22,7 @@ until [[ "$(timeout 3 adb get-state 2>/dev/null)" == device ]]; do
   sleep 1
 done
 
-mkdir -p "$OUT"; chmod 700 "$OUT"
+privat_mappe "$OUT"
 echo "$(date +%T) adb oppe – henter (oppetid $(timeout 5 adb shell 'cut -d" " -f1 /proc/uptime' | tr -d '\r') s)"
 timeout 25 adb pull /xdata/zcfg_config.json "$OUT/zcfg_config.json" >/dev/null 2>&1 \
   && chmod 600 "$OUT/zcfg_config.json" && echo "  config -> $OUT/zcfg_config.json" \

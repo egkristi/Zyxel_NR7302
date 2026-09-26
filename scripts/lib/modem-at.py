@@ -50,7 +50,9 @@ if __name__ == "__main__":
     ap.add_argument("cmds", nargs="+")
     a = ap.parse_args()
     fd = open_port(a.port)
-    log = os.path.join(BASE, "logg", f"at-{datetime.date.today()}.log")
+    logdir = os.path.join(BASE, "logg")
+    os.makedirs(logdir, exist_ok=True)
+    log = os.path.join(logdir, f"at-{datetime.date.today()}.log")
     with open(log, "a") as lf:
         for c in a.cmds:
             resp = command(fd, c, a.timeout)
@@ -58,3 +60,10 @@ if __name__ == "__main__":
             print(out)
             lf.write(f"[{datetime.datetime.now():%H:%M:%S}] {out}")
     os.close(fd)
+    # Kjøres med sudo: loggen skal eies av brukeren, ellers feiler senere kjøringer uten sudo.
+    if "SUDO_UID" in os.environ:
+        for p in (logdir, log):
+            try:
+                os.chown(p, int(os.environ["SUDO_UID"]), int(os.environ["SUDO_GID"]))
+            except OSError:
+                pass

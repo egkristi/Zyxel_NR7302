@@ -37,20 +37,24 @@ Skript som må kjøres med `sudo` sier fra selv. Alt som hentes fra enheten havn
 | 5 | `51-zyxel-flash-firmware-via-zycast.sh` | zyxel | **ja** (sudo) | flasher .bin med zycast, venter på riktig tidsvindu |
 | 6 | `60-zyxel-sett-admin-passord.sh` | zyxel | **ja** | setter kjent admin-passord (standard: serienummeret) og tester innlogging |
 | 6 | `61-zyxel-lag-config-lokal-administrasjon.py` | zyxel | nei** | lager config med lokal administrasjon |
-| 6 | `62-zyxel-sett-apn-og-slaa-av-fjernstyring.sh` | zyxel | **ja** | APN + slår av operatørens fjernstyring, verifiserer etter omstart |
+| 6 | `62-zyxel-sett-apn-og-slaa-av-fjernstyring.sh` | zyxel | **ja** | APN (argument eller `mobil.apn` i yml) + slår av operatørens fjernstyring, verifiserer etter omstart |
 | 7 | `70-zyxel-verifiser-config-og-innlogging.sh` | zyxel | nei | sjekker config (fase 6) og web-grensesnitt |
 | 7 | `71-pc-mal-hastighet-og-ping-via-zyxel.sh` | PC | nei | hastighet og ping under last, tvunget ut på kablet kort |
 | 8 | `80-pc-tilbakestill-nettverkskort.sh` | PC | ja (sudo) | kortet tilbake til NetworkManager/DHCP, WiFi på igjen |
 | 8 | `81-pc-fjern-udev-regler.sh` | PC | ja (sudo) | fjerner udev-reglene fra fase 1 (pakker beholdes) |
-| 9 | `90-zyxel-gjenopprett-config-fra-backup.sh` | zyxel | **ja** | skriver en `zcfg_config.json` til enheten og starter den på nytt |
+| 9 | `90-zyxel-gjenopprett-config-fra-backup.sh` | zyxel | **ja** | skriver en `zcfg_config.json` til enheten (atomisk, md5-kontrollert), starter på nytt og venter til den er klar |
 
 \* Skriver bare filer lokalt på PC-en.
-\*\* `61` skriver bare en fil lokalt. Den legges på enheten med `90-…`.
+\*\* `61` skriver bare en fil lokalt. Den legges på enheten med `90-…`. Kan kjøres flere ganger;
+verdier som allerede er riktige hoppes over.
 
 ### `lib/` – hjelpeverktøy (kjøres av andre skript eller for hånd)
 
 | Fil | Hva |
 |---|---|
+| `lib/felles.sh` | felles funksjoner: atomisk config-skriving (`adb_skriv_config`), omstart og venting (`adb_omstart_og_vent`), private backupmapper, valg av nettverkskort, verdier fra yml |
+| `lib/config-verdi.py` | leser én verdi fra `zyxel_nr7302.yml` med `zyxel_nr7302.local.yml` lagt oppå |
+| `lib/zcfg.py` | Python-hjelpere for `zcfg_config.json`: oppslag på navn, sammenligning |
 | `lib/pc-nettverkskort.sh` | `admin` / `zycast` / `down` / `status` for PCens kablede kort. Brukes av 30, 50 og 80 |
 | `lib/modem-at.py` | sender AT-kommandoer til modemet via USB (`/dev/ttyUSB*`), logger til `logg/`. Brukes til å slå på adb |
 | `lib/lag-apn-og-fjernstyring-config.py` | lager config for 62 (kun lokalt) |
@@ -62,7 +66,16 @@ Skript som må kjøres med `sudo` sier fra selv. Alt som hentes fra enheten havn
 | Slå på adb (Telenor-firmware) | «Slå på adb» i [hoved-README](../README.md#slå-på-adb) |
 | Flashing via web-grensesnittet (Telenor → Telekom) | [docs/flash-telenor-til-dtag.md](../docs/flash-telenor-til-dtag.md) |
 
-## Nettverkskort
+## Nettverkskort og adresser
 
 Skriptene bruker første kablede kort som NetworkManager kjenner. Velg et annet med
-`IFACE=`, for eksempel `sudo IFACE=enx00e04c680001 ./30-pc-sett-nettverkskort-mot-zyxel.sh`.
+`IFACE=`, for eksempel `sudo IFACE=enx00e04c680001 ./30-pc-sett-nettverkskort-mot-zyxel.sh`,
+eller fast med `pc.nettverkskort` i `zyxel_nr7302.local.yml`. Adressene (`pc.admin_adresse`,
+`pc.enhet_adresse`, `pc.zycast_adresse`) hentes også derfra.
+
+## Tester
+
+```bash
+python3 -m unittest discover -s tests -v     # Python-skriptene og lib/felles.sh (med falsk adb)
+shellcheck scripts/*.sh scripts/lib/*.sh
+```

@@ -13,6 +13,8 @@ logg/*
 # Config hentet fra / laget for en enhet (inneholder krypterte og evt. klartekst-passord)
 config/
 *zcfg_config*.json
+# ...unntatt den oppdiktede test-configen (ingen ekte enhetsdata)
+!tests/fixtures/zcfg_config.json
 *.json.bak*
 
 # Personlige overstyringer av zyxel_nr7302.yml (passord, APN-brukernavn osv.)
@@ -49,3 +51,6 @@ __pycache__/
 .DS_Store
 .vscode/
 .idea/
+
+# Bygd dokumentasjonsside (mkdocs build)
+site/

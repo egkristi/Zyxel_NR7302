@@ -11,7 +11,9 @@
 # (80-pc-tilbakestill-nettverkskort.sh). Med fast IP uten gateway (30-…) fungerer det ikke.
 set -uo pipefail
 export LC_ALL=C
-IFACE="${IFACE:-$(nmcli -t -f DEVICE,TYPE device 2>/dev/null | awk -F: '$2=="ethernet"{print $1; exit}')}"
+. "$(dirname "$0")/lib/felles.sh"
+IFACE="$(finn_iface)"
+[[ -n "$IFACE" ]] || { echo "Fant ikke kablet nettverkskort. Sett IFACE=..." >&2; exit 1; }
 SEK="${SEK:-20}"
 UA="Mozilla/5.0 (X11; Linux x86_64) Chrome/125"
 DL=(https://nbg1-speed.hetzner.com/1GB.bin https://proof.ovh.net/files/1Gb.dat)

@@ -1,15 +1,13 @@
 #!/usr/bin/env bash
 # Sjekker at alt er installert, lastet ned og riktig før du begynner. Endrer ingenting.
 #   ./12-pc-sjekk-klar.sh
-BASE="$(cd "$(dirname "$0")/.." && pwd)"
-IFACE="${IFACE:-$(nmcli -t -f DEVICE,TYPE device 2>/dev/null | awk -F: '$2=="ethernet"{print $1; exit}')}"  # første kablede kort, eller IFACE=...
+. "$(dirname "$0")/lib/felles.sh"
+IFACE="$(finn_iface)"   # første kablede kort, pc.nettverkskort i yml, eller IFACE=...
+BAD_TAG=MANGLER
 fail=0
-ok()   { printf '  [OK]    %s\n' "$*"; }
-bad()  { printf '  [MANGLER] %s\n' "$*"; fail=1; }
-info() { printf '  [INFO]  %s\n' "$*"; }
 
 echo "== Programmer"
-for c in adb fastboot gcc git jq python3 nmcli curl unzip; do
+for c in adb fastboot gcc git jq python3 nmcli curl unzip xdg-open; do
   command -v "$c" >/dev/null && ok "$c" || bad "$c  (kjør: sudo $BASE/scripts/10-pc-installer-pakker.sh)"
 done
 
@@ -32,11 +30,17 @@ echo "== Upstream (valgfritt)"
 [[ -d "$BASE/repo/.git" ]] && info "upstream-repo i repo/ ($(git -C "$BASE/repo" log -1 --format='%h %cs'))" || info "upstream-repo (valgfritt): git clone https://github.com/davidohne/Zyxel_NR7302 repo"
 
 echo "== Nettverkskort"
-ip link show "$IFACE" >/dev/null 2>&1 && ok "$IFACE finnes" || bad "$IFACE finnes ikke"
-if ip -4 -br addr | grep -v "^$IFACE" | grep -q ' 192\.168\.1\.'; then
-  bad "Et annet grensesnitt bruker 192.168.1.0/24 – konflikt med Zyxel. Koble fra det nettet."
-else ok "ingen IP-konflikt med 192.168.1.0/24"; fi
-info "Andre grensesnitt: $(ip -4 -br addr | grep -v "^lo\|^$IFACE" | awk '{print $1" "$3}' | tr "\n" " ")"
+if [[ -z "$IFACE" ]]; then
+  bad "fant ikke noe kablet nettverkskort (sett IFACE=... eller pc.nettverkskort i yml)"
+elif ip link show "$IFACE" >/dev/null 2>&1; then ok "$IFACE finnes"
+else bad "$IFACE finnes ikke"; fi
+andre="$(ip -4 -br addr | awk -v i="$IFACE" '$1!=i && $1!="lo"')"
+for nett in 192.168.1 192.168.2; do
+  if grep -q " ${nett//./\\.}\." <<<"$andre"; then
+    bad "Et annet grensesnitt bruker $nett.0/24 – konflikt med Zyxel. Koble fra det nettet."
+  else ok "ingen IP-konflikt med $nett.0/24"; fi
+done
+info "Andre grensesnitt: $(awk '{print $1" "$3}' <<<"$andre" | tr "\n" " ")"
 
 echo "== Firmware (firmware/*.bin)"
 shopt -s nullglob

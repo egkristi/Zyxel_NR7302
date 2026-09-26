@@ -26,7 +26,8 @@ zip_ok() { [[ -s "$1" ]] && unzip -tq "$1" >/dev/null 2>&1; }
 
 fetch() {  # fetch <navn> <utfil>  -> 0 hvis en ekte fil kom ned
   curl -fsSL -A "$UA" --max-time 300 -o "$2.part" "$DL/$1" 2>/dev/null || true
-  if [[ -s "$2.part" ]] && ! file "$2.part" | grep -qi 'html'; then mv "$2.part" "$2"; return 0; fi
+  # telekom.de svarer med en HTML-side i stedet for filen når nedlastingen blokkeres
+  if [[ -s "$2.part" ]] && ! head -c 512 "$2.part" | grep -qiE '<!doctype|<html'; then mv "$2.part" "$2"; return 0; fi
   rm -f "$2.part"; return 1
 }
 

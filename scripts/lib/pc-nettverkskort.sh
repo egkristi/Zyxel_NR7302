@@ -10,15 +10,20 @@
 #   sudo ./pc-nettverkskort.sh down     Rull tilbake alt: fjern profil, gi porten tilbake til
 #                                NetworkManager, slå WiFi på igjen hvis det var på.
 #   ./pc-nettverkskort.sh status        Vis nåværende tilstand.
+#
+# Adressene hentes fra pc.* i zyxel_nr7302(.local).yml. Miljøvariablene IFACE, ADMIN_ADDR og
+# ADMIN_GW overstyrer.
 set -euo pipefail
+# shellcheck source=felles.sh
+. "$(dirname "$0")/felles.sh"
 
-IFACE="${IFACE:-$(nmcli -t -f DEVICE,TYPE device 2>/dev/null | awk -F: '$2=="ethernet"{print $1; exit}')}"  # første kablede kort, eller IFACE=...
+IFACE="$(finn_iface)"
 PROFILE="zyxel-nr7302"
-ADMIN_ADDR="${ADMIN_ADDR:-192.168.2.4/24}"
-ADMIN_GW="${ADMIN_GW:-192.168.2.1}"
-ZYCAST_ADDR="192.168.1.4/24"
-BASE="$(cd "$(dirname "$0")/../.." && pwd)"
+ADMIN_ADDR="${ADMIN_ADDR:-$(config_verdi pc.admin_adresse 192.168.2.4/24)}"
+ADMIN_GW="${ADMIN_GW:-$(config_verdi pc.enhet_adresse 192.168.2.1)}"
+ZYCAST_ADDR="$(config_verdi pc.zycast_adresse 192.168.1.4/24)"
 STATE="$BASE/logg/.wifi-var-paa"
+[[ -n "$IFACE" ]] || { echo "Fant ikke kablet nettverkskort. Sett IFACE=... eller pc.nettverkskort i yml." >&2; exit 1; }
 
 need_root() { [[ $EUID -eq 0 ]] || { echo "Kjør med sudo: sudo $0 $1" >&2; exit 1; }; }
 
@@ -33,7 +38,7 @@ status() {
   ip route show default
   local target=""
   ip -br addr show "$IFACE" | grep -q "${ADMIN_ADDR%/*}" && target="$ADMIN_GW"
-  ip -br addr show "$IFACE" | grep -q "${ZYCAST_ADDR%/*}" && target="192.168.1.1"
+  ip -br addr show "$IFACE" | grep -q "${ZYCAST_ADDR%/*}" && target="${ZYCAST_ADDR%.*}.1"
   if [[ -n "$target" ]]; then
     ping -c1 -W1 -I "$IFACE" "$target" >/dev/null 2>&1 && echo "$target svarer på ping" || echo "$target svarer ikke (ennå)"
   fi
@@ -63,7 +68,7 @@ zycast() {
   ip addr add "$ZYCAST_ADDR" dev "$IFACE"
   ip link set "$IFACE" up
   if [[ "$(nmcli radio wifi)" == "enabled" ]]; then
-    touch "$STATE"
+    mkdir -p "$(dirname "$STATE")"; touch "$STATE"
     nmcli radio wifi off
     echo "WiFi slått av (slås på igjen med: sudo $0 down)."
   fi
@@ -85,5 +90,5 @@ down() {
 
 case "${1:-}" in
   admin|zycast|down|status) "$1" ;;
-  *) sed -n '2,13p' "$0"; exit 1 ;;
+  *) sed -n '2,16p' "$0"; exit 1 ;;
 esac

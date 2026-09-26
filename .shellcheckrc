@@ -1,0 +1,8 @@
+# Skriptene kilder scripts/lib/felles.sh
+external-sources=true
+source-path=SCRIPTDIR
+source-path=SCRIPTDIR/lib
+# «a && ok || bad» er bevisst stil i sjekkskriptene
+disable=SC2015
+# Kommandoer som kjøres på enheten (adb shell '...') skal ikke ekspanderes lokalt
+disable=SC2016

@@ -7,13 +7,14 @@
 # alle MTD-partisjoner (rå), liste over firmwarefiler som ligger igjen på enheten,
 # og SHA256SUMS. Sammenligner MD5 på enheten mot PC for hver partisjon.
 set -uo pipefail
+. "$(dirname "$0")/lib/felles.sh"
 
-BASE="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$BASE/backup/$(date +%Y%m%d-%H%M%S)"
-mkdir -p "$OUT/mtd"
+privat_mappe "$OUT"; privat_mappe "$OUT/mtd"
+umask 077
 exec > >(tee "$OUT/backup.log") 2>&1
 
-sh_() { adb shell "$@" | tr -d '\r'; }
+sh_() { adb_sh "$@"; }
 
 echo "== Venter på enhet (adb) ..."
 adb wait-for-device
@@ -31,7 +32,7 @@ echo "== Systeminfo"
   echo "# ls -la /xdata"; sh_ ls -la /xdata
   echo "# fw_version";    sh_ 'cat /etc/fw_version /etc/version /xdata/*version* 2>/dev/null'
 } > "$OUT/systeminfo.txt"
-cat "$OUT/systeminfo.txt" | head -40
+head -40 "$OUT/systeminfo.txt"
 
 if ! sh_ id | grep -q 'uid=0'; then
   echo "!! adb-skallet er IKKE root. Backup av /xdata og MTD kan feile. Stopp og rapporter."
@@ -80,6 +81,7 @@ sh_ 'find / -xdev \( -name "*.bin" -o -name "*.zip" -o -name "fotaconfig.xml" -o
   | sort -u | tee "$OUT/firmwarefiler-paa-enheten.txt"
 
 echo "== Sjekksummer"
+# shellcheck disable=SC2094  # SHA256SUMS er utelatt i find
 (cd "$OUT" && find . -type f ! -name SHA256SUMS ! -name backup.log -print0 | xargs -0 sha256sum > SHA256SUMS)
 du -sh "$OUT"
 echo "Ferdig: $OUT"
