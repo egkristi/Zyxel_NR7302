@@ -7,7 +7,8 @@ kilde: zyxel_nr7302.yml
 
 `zyxel_nr7302.yml` in the root of the repo describes the desired setup and every setting
 found, marked *verifisert* (verified on a device) or *ikke testet* (not tested). The key
-names and comments in the file are in Norwegian; this page explains every key in English.
+names are Norwegian; the comments in the file are in both Norwegian and English, and the
+table below explains every key in English.
 
 Each key marked **[brukes av skript: …]** ("used by script") is read by those scripts:
 
