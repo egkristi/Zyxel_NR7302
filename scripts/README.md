@@ -68,7 +68,7 @@ verdier som allerede er riktige hoppes over.
 | Hva | Gjør slik |
 |---|---|
 | Slå på adb (Telenor-firmware) | «Slå på adb» i [hoved-README](../README.md#slå-på-adb) |
-| Flashing via web-grensesnittet (Telenor → Telekom) | [docs/flash-telenor-til-dtag.md](../docs/flash-telenor-til-dtag.md) |
+| Flashing via web-grensesnittet (Telenor → Telekom) | [Telenor → Telekom-firmware](../docs/flash-telenor-til-dtag.md) |
 
 ## Nettverkskort og adresser
 

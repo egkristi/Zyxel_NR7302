@@ -26,7 +26,7 @@ firmware as a file, so after switching over you can update manually.
 | Newer modem firmware | APN and "Enable Customized Settings" must be set again |
 | Telenor's factory setup disappears (if ROM-D is cleared) | eSIM support probably disappears |
 
-Do not expect higher speed by itself. See [ytelse-og-operatorer.en.md](ytelse-og-operatorer.en.md).
+Do not expect higher speed by itself. See [Performance and operators](ytelse-og-operatorer.en.md).
 
 ## Preparation
 

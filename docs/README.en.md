@@ -11,7 +11,9 @@
 Every document also exists in Norwegian (`*.md` without `.en`).
 
 Published as a website: <https://egkristi.github.io/Zyxel_NR7302/en/> (built from this folder
-and the README files with MkDocs, see `mkdocs.yml`). `index.en.md`, `skript.en.md` and
-`konfigurasjon.en.md` take their content from the README files and the yml file, so edit it there.
+and the README files with MkDocs, see `mkdocs.yml`). `index`, `veiledning`, `tekniske-funn`,
+`om`, `skript` and `konfigurasjon` (`.md` and `.en.md`) take their text from the README files
+and the yml file through markers such as `<!-- kilde: The phases | innhold -->` (see
+`.mkdocs/hooks.py`), so edit the text there.
 
 Overview of the phases and all scripts: [main README](../README.en.md) and [scripts/README.en.md](../scripts/README.en.md).

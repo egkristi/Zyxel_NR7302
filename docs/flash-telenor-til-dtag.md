@@ -26,7 +26,7 @@ NR7302-firmware som fil, så etter en overgang kan du oppdatere manuelt.
 | Nyere modemfirmware | Må stille inn APN og «Enable Customized Settings» på nytt |
 | Telenors fabrikkoppsett forsvinner (hvis ROM-D slettes) | eSIM-støtte forsvinner trolig |
 
-Forvent ikke høyere hastighet i seg selv. Se [ytelse-og-operatorer.md](ytelse-og-operatorer.md).
+Forvent ikke høyere hastighet i seg selv. Se [Ytelse og operatører](ytelse-og-operatorer.md).
 
 ## Forberedelser
 

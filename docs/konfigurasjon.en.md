@@ -87,5 +87,3 @@ scripts/lib/config-verdi.py mobil.apn
 
 The defaults are checked by the test suite: applied to the original Telenor config, they
 produce exactly the configuration verified on the device.
-
-## The whole file

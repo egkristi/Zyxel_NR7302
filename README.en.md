@@ -53,7 +53,7 @@ something or only reads:
 | **2 Downloads** | Telekom firmware, zycast | `20-pc-last-ned-telekom-firmware.sh`, `21-pc-bygg-zycast.sh`, `22-pc-sjekk-firmwarefil.py` |
 | **3 Connect** | network to the device, adb | `30-pc-sett-nettverkskort-mot-zyxel.sh`, [Enable adb](#enable-adb), `32-zyxel-sjekk-tilkobling.sh`, `33-zyxel-fang-adb-ved-oppstart.sh` |
 | **4 Survey and backup** | full backup, read config and modem | `40-zyxel-ta-backup.sh`, `41-zyxel-vis-config.py`, `42-modem-vis-status.sh` |
-| **5 Flashing (optional)** | Telekom firmware *before* configuration | [docs/flash-telenor-til-dtag.en.md](docs/flash-telenor-til-dtag.en.md), `50-…`, `51-…` |
+| **5 Flashing (optional)** | Telekom firmware *before* configuration | [Telenor → Telekom firmware](docs/flash-telenor-til-dtag.en.md), `50-…`, `51-…` |
 | **6 Configuration** | local management, password, APN, remote management off | `61-…` + `90-…`, `60-zyxel-sett-admin-passord.sh`, `62-zyxel-sett-apn-og-slaa-av-fjernstyring.sh` |
 | **7 Verification** | config, login, mobile data, speed | `70-zyxel-verifiser-config-og-innlogging.sh`, `42-modem-vis-status.sh`, `71-pc-mal-hastighet-og-ping-via-zyxel.sh` |
 | **8 Wrap-up** | PC back as it was | `80-pc-tilbakestill-nettverkskort.sh`, `81-pc-fjern-udev-regler.sh` |
@@ -125,7 +125,7 @@ raw made the device reboot). **Copy `backup/` somewhere else.**
 
 ### Phase 5 – Flashing (optional)
 
-Separate guide: **[docs/flash-telenor-til-dtag.en.md](docs/flash-telenor-til-dtag.en.md)**.
+Separate guide: **[Telenor → Telekom firmware](docs/flash-telenor-til-dtag.en.md)**.
 Do this *before* phase 6, since new firmware can reset the settings.
 
 ### Phase 6 – Configuration
@@ -162,7 +162,7 @@ scripts/71-pc-mal-hastighet-og-ping-via-zyxel.sh     # speed and ping under load
 
 `71` needs the PC to get its address from the antenna (DHCP, `80-…`) and forces traffic out
 through the wired interface, so WiFi does not affect the measurement. See
-[docs/ytelse-og-operatorer.en.md](docs/ytelse-og-operatorer.en.md) for interpretation,
+[Performance and operators](docs/ytelse-og-operatorer.en.md) for interpretation,
 subscription limits and bufferbloat.
 
 ### Phase 8 – Wrap-up
@@ -191,7 +191,7 @@ sudo scripts/81-pc-fjern-udev-regler.sh    # optional
   [docs](docs/flash-telenor-til-dtag.en.md).
 - **A flat speed cap that is the same both ways is almost always the subscription**, not the
   antenna. Ice's *Data Frihet* is limited to 25 Mbit/s; a Telia SIM in the same antenna gave
-  ~230 Mbit/s. See [docs/ytelse-og-operatorer.en.md](docs/ytelse-og-operatorer.en.md).
+  ~230 Mbit/s. See [Performance and operators](docs/ytelse-og-operatorer.en.md).
 
 ## `zyxel_nr7302.yml`
 
@@ -208,7 +208,7 @@ Describes the desired setup and every setting found, marked *verifisert* (verifi
 
 `null` means "leave unchanged" (and do not check). Arguments and environment variables take
 precedence. Personal values go in `zyxel_nr7302.local.yml`, which is layered on top and
-git-ignored. Every key is explained in English in [docs/konfigurasjon.en.md](docs/konfigurasjon.en.md).
+git-ignored. Every key is explained in English in [Configuration file](docs/konfigurasjon.en.md).
 
 ```yaml
 mobil:

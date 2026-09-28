@@ -11,19 +11,24 @@ exclude_docs: |
   README.md
   README.en.md
 
-# Sidene index, skript og konfigurasjon (norsk og .en.md) hentes fra README-filene og
-# yml-filen i repoet (se .mkdocs/hooks.py), så innholdet bare finnes ett sted.
+# Sidene index, veiledning, skript, konfigurasjon, tekniske-funn og om (norsk og .en.md)
+# henter tekst fra README-filene og yml-filen i repoet (se .mkdocs/hooks.py), så innholdet
+# bare finnes ett sted.
 # Engelske sider er <side>.en.md og publiseres under /en/ (mkdocs-static-i18n).
 hooks:
   - .mkdocs/hooks.py
 
 nav:
-  - Oversikt: index.md
-  - Skript: skript.md
+  - Hjem: index.md
+  - Steg for steg: veiledning.md
   - Veiledninger:
       - Telenor → Telekom-firmware: flash-telenor-til-dtag.md
       - Ytelse og operatører: ytelse-og-operatorer.md
-  - Konfigurasjonsfil: konfigurasjon.md
+  - Referanse:
+      - Skript: skript.md
+      - Konfigurasjonsfil: konfigurasjon.md
+      - Tekniske funn: tekniske-funn.md
+  - Om: om.md
 
 theme:
   name: material
@@ -33,11 +38,13 @@ theme:
     repo: fontawesome/brands/github
   favicon: assets/favicon.svg
   features:
-    - navigation.sections
+    - navigation.tabs
+    - navigation.tracking
     - navigation.top
     - navigation.footer
     - toc.follow
     - content.code.copy
+    - search.suggest
     - search.highlight
   palette:
     - media: "(prefers-color-scheme: light)"
@@ -58,6 +65,10 @@ theme:
 markdown_extensions:
   - admonition
   - attr_list
+  - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - tables
   - pymdownx.details
   - pymdownx.highlight
@@ -88,13 +99,22 @@ plugins:
           site_name: Zyxel NR7302 – operator-independent use
           site_description: Take control of an operator-locked Zyxel NR7302 5G antenna from Linux – any operator, local management, no remote management.
           nav_translations:
-            Oversikt: Overview
-            Skript: Scripts
+            Hjem: Home
+            Steg for steg: Step by step
             Veiledninger: Guides
             Telenor → Telekom-firmware: Telenor → Telekom firmware
             Ytelse og operatører: Performance and operators
+            Referanse: Reference
+            Skript: Scripts
             Konfigurasjonsfil: Configuration file
+            Tekniske funn: Technical findings
+            Om: About
 
 validation:
   links:
     anchors: warn
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/egkristi/Zyxel_NR7302

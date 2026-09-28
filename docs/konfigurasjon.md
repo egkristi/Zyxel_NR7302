@@ -47,5 +47,3 @@ Les en verdi slik skriptene gjør:
 ```bash
 scripts/lib/config-verdi.py mobil.apn
 ```
-
-## Hele filen

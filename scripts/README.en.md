@@ -69,7 +69,7 @@ repeatedly; values that are already correct are skipped.
 | What | How |
 |---|---|
 | Enable adb (Telenor firmware) | "Enable adb" in the [main README](../README.en.md#enable-adb) |
-| Flashing via the web UI (Telenor → Telekom) | [docs/flash-telenor-til-dtag.en.md](../docs/flash-telenor-til-dtag.en.md) |
+| Flashing via the web UI (Telenor → Telekom) | [Telenor → Telekom firmware](../docs/flash-telenor-til-dtag.en.md) |
 
 ## Network interface and addresses
 

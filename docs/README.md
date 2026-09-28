@@ -11,7 +11,9 @@
 Hvert dokument finnes også på engelsk (`*.en.md`).
 
 Publisert som nettside: <https://egkristi.github.io/Zyxel_NR7302/> (bygges fra denne mappen og
-README-filene med MkDocs, se `mkdocs.yml`). `index.md`, `skript.md` og `konfigurasjon.md`
-(og `.en.md`-versjonene) henter innholdet fra README-filene og yml-filen, så de redigeres der.
+README-filene med MkDocs, se `mkdocs.yml`). `index.md`, `veiledning.md`, `tekniske-funn.md`,
+`om.md`, `skript.md` og `konfigurasjon.md` (og `.en.md`-versjonene) henter teksten fra
+README-filene og yml-filen med markører som `<!-- kilde: Fasene | innhold -->` (se
+`.mkdocs/hooks.py`), så teksten redigeres der.
 
 Oversikt over fasene og alle skript: [hoved-README](../README.md) og [scripts/README.md](../scripts/README.md).
